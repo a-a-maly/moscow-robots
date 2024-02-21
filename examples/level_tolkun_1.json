@@ -1,0 +1,171 @@
+{
+    "settings": {
+        "max_x": 4,
+        "max_y": 4,
+        "screen_resolution": [
+            800,
+            800
+        ],
+        "start_x": 1,
+        "start_y": 0,
+        "robot": 4
+    },
+    "horizontal_fences": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "vertical_fences": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "cells": [
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 1,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 1
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 2,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 2
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 1,
+            "blocks": 0,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        }
+    ]
+}
