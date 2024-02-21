@@ -1,0 +1,250 @@
+{
+    "settings": {
+        "max_x": 6,
+        "max_y": 4,
+        "screen_resolution": [
+            600,
+            400
+        ],
+        "start_x": 1,
+        "start_y": 0,
+        "robot": 5
+    },
+    "horizontal_fences": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "vertical_fences": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+    ],
+    "cells": [
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 2,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 1,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 3,
+            "blocks": 2,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 1,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 1,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 1,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 2
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 2
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 2
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 11
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0,
+            "type": 2
+        }
+    ],
+    "end_position": [
+        4,
+        0
+    ],
+    "is_win": true
+}

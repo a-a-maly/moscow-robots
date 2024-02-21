@@ -1,0 +1,251 @@
+{
+    "settings": {
+        "max_x": 6,
+        "max_y": 4,
+        "screen_resolution": [
+            1200,
+            800
+        ],
+        "start_x": 4,
+        "start_y": 2,
+        "angle": 2,
+        "robot": 0
+    },
+    "horizontal_fences": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "vertical_fences": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "cells": [
+        {
+            "pos": 0,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 1,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 2,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 3,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 4,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 5,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 6,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 7,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 8,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 1
+        },
+        {
+            "pos": 9,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 1
+        },
+        {
+            "pos": 10,
+            "blocks": 0,
+            "sticker": 1,
+            "type_cell": 0
+        },
+        {
+            "pos": 11,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 12,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 13,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 14,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 3
+        },
+        {
+            "pos": 15,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 16,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 17,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 18,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 19,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 20,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 3
+        },
+        {
+            "pos": 21,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 22,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        },
+        {
+            "pos": 23,
+            "blocks": 0,
+            "sticker": 0,
+            "type_cell": 0
+        }
+    ],
+    "mas_trains": [
+        {
+            "type": "active",
+            "mas_elem": [
+                {
+                    "type": 0,
+                    "pos": 15
+                }
+            ]
+        },
+        {
+            "type": "active",
+            "mas_elem": [
+                {
+                    "type": 0,
+                    "pos": 2
+                }
+            ]
+        },
+        {
+            "type": "active",
+            "mas_elem": [
+                {
+                    "type": 0,
+                    "pos": 13
+                }
+            ]
+        }
+    ]
+}
