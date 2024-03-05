@@ -1,5 +1,5 @@
 import pygame
-
+import os
 
 texture_names = [
     "block_any_dest",
@@ -81,9 +81,11 @@ def preload_textures():
 	global texture_imgs
 	if texture_imgs is not None:
 		return
+
+	data_path = os.path.join(os.path.dirname(__file__), 'textures')
 	texture_imgs = {}
 	for name in texture_names:
-		image = pygame.image.load(name + ".png")
+		image = pygame.image.load(os.path.join(data_path, name + ".png"))
 		texture_imgs[name] = image
 
 def get_image(name):

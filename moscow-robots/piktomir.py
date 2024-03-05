@@ -1,9 +1,7 @@
-import math
 import pygame
 import time
 import json
-from PIL import Image
-from general import function_robots
+from moscow_robots import function_robots
 
 
 # 2.1.4
