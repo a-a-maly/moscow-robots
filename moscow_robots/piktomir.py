@@ -1,7 +1,7 @@
 import pygame
 import time
 import json
-from moscow_robots import function_robots
+from moscow_robots import robots as function_robots
 
 
 # 2.1.4
