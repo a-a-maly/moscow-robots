@@ -3,6 +3,7 @@ import pygame
 import time
 import json
 from PIL import Image
+from moscow_robots.data import get_image
 
 
 # 2.1.4
@@ -26,7 +27,7 @@ def make_fences(self):
             # if x == 0 or x == self.count_of_cells[0]:
             #     self.vertical_fences[y * (self.count_of_cells[0] + 1) + x] = 1
             if self.vertical_fences[y * (self.count_of_cells[0] + 1) + x] == 1:
-                self.screen.blit(self.Iwall_surface,
+                self.screen.blit(self.vwall_surface,
                                  (x * self.cell_size[0] - self.cell_size[0] / 20, self.cell_size[1] * (y + 1 / 10)))
 
     # горизонтальные заборы _
@@ -35,7 +36,7 @@ def make_fences(self):
             # if y == 0 or y == self.count_of_cells[0]:
             #     self.horizontal_fences[y * self.count_of_cells[0] + x] = 1
             if self.horizontal_fences[y * self.count_of_cells[0] + x] == 1:
-                self.screen.blit(self._wall_surface,
+                self.screen.blit(self.hwall_surface,
                                  (self.cell_size[0] * (x + 1 / 10), y * self.cell_size[1] - self.cell_size[1] / 20))
     #pygame.display.update()
 
@@ -424,59 +425,69 @@ def robot_dead(self, change_x, change_y):
 
 
 def first_field_textures(self):
-    name_usual_cell = self.textures["usual_cell_surface"]
+    name_usual_cell = "field_normal"
     if self.num_robot in [1, 2, 5]:
-        name_usual_cell = self.textures["usual_cell_surface2"]
+        name_usual_cell = "field_normal_other"
     if self.num_robot in [3, 4]:
-        print(1)
-        name_usual_cell = self.textures["usual_cell_surface3"]
-    self.painted_broken_cell_surface = pygame.image.load(self.textures["painted_broken_cell_surface"]).convert()
-    self.painted_broken_cell_surface = pygame.transform.scale(self.painted_broken_cell_surface,
-                                                              (self.cell_size[0], self.cell_size[1]))
+        name_usual_cell = "rug_green"
 
-    self.painted_cell_surface = pygame.image.load(self.textures["painted_cell_surface"]).convert()
-    self.painted_cell_surface = pygame.transform.scale(self.painted_cell_surface,
-                                                       (self.cell_size[0], self.cell_size[1]))
+    self.usual_cell_surface = get_image(name_usual_cell).convert()
+    self.usual_cell_surface = pygame.transform.scale(self.usual_cell_surface,
+                                                     (self.cell_size[0], self.cell_size[1]))
 
-    self.broken_cell_surface = pygame.image.load(self.textures["broken_cell_surface"]).convert()
+    self.broken_cell_surface = get_image("field_broken").convert()
     self.broken_cell_surface = pygame.transform.scale(self.broken_cell_surface,
                                                       (self.cell_size[0], self.cell_size[1]))
 
-    self.usual_cell_surface = pygame.image.load(name_usual_cell).convert()
-    self.usual_cell_surface = pygame.transform.scale(self.usual_cell_surface,
-                                                     (self.cell_size[0], self.cell_size[1]))
-    name_end_place = "end_place"
+
+    self.painted_cell_surface = get_image("field_normal_painted").convert()
+    self.painted_cell_surface = pygame.transform.scale(self.painted_cell_surface,
+                                                       (self.cell_size[0], self.cell_size[1]))
+
+    self.painted_broken_cell_surface = get_image("field_broken_painted").convert()
+    self.painted_broken_cell_surface = pygame.transform.scale(self.painted_broken_cell_surface,
+                                                              (self.cell_size[0], self.cell_size[1]))
+
+    name_end_place = "robot_dest"
     if self.num_robot in [3, 4]:
-        name_end_place = "end_polzun"
-    self.end_place_surface = pygame.image.load(self.textures[name_end_place]).convert_alpha()
+        name_end_place = "rug_red"
+    self.end_place_surface = get_image(name_end_place).convert_alpha()
     self.end_place_surface = pygame.transform.scale(self.end_place_surface, (self.cell_size[0], self.cell_size[1]))
-    # print(self.num_robot)
-    self.finish_block_surface = pygame.image.load(self.textures["finish_block"]).convert_alpha()
+
+    self.block_surface = get_image("block_square").convert()
+    self.block_surface = pygame.transform.scale(self.block_surface,
+                                                (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
+    self.block2_surface = get_image("block_circle").convert_alpha()
+    self.block2_surface = pygame.transform.scale(self.block2_surface,
+                                                 (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
+
+    self.finish_block_surface = get_image("block_square_dest").convert_alpha()
     self.finish_block_surface = pygame.transform.scale(self.finish_block_surface,
                                                        (self.cell_size[0], self.cell_size[1]))
-    self.finish_block2_surface = pygame.image.load(self.textures["finish_block2"]).convert_alpha()
+    self.finish_block2_surface = get_image("block_circle_dest").convert_alpha()
     self.finish_block2_surface = pygame.transform.scale(self.finish_block2_surface,
                                                         (self.cell_size[0], self.cell_size[1]))
-    self.finish_blocku_surface = pygame.image.load(self.textures["finish_blocku"]).convert_alpha()
+    self.finish_blocku_surface = get_image("block_any_dest").convert_alpha()
     self.finish_blocku_surface = pygame.transform.scale(self.finish_blocku_surface,
                                                         (self.cell_size[0], self.cell_size[1]))
 
-    self._wall_surface = pygame.image.load(self.textures["_wall_surface"]).convert()
-    self._wall_surface = pygame.transform.scale(self._wall_surface,
+    self.hwall_surface = get_image("wall_hor").convert()
+    self.hwall_surface = pygame.transform.scale(self.hwall_surface,
                                                 (self.cell_size[0] * 4 / 5, self.cell_size[1] / 10))
-    self.Iwall_surface = pygame.image.load(self.textures["Iwall_surface"]).convert()
-    self.Iwall_surface = pygame.transform.scale(self.Iwall_surface,
+    self.vwall_surface = get_image("wall_vert").convert()
+    self.vwall_surface = pygame.transform.scale(self.vwall_surface,
                                                 (self.cell_size[0] / 10, self.cell_size[1] * 4 / 5))
     if 3 <= self.num_robot <= 4:
-        self.cell_type_surface = [pygame.image.load(self.textures["standart_cell_polzun"]).convert()]
+        self.cell_type_surface = []
+        self.cell_type_surface.append(get_image("rug_green").convert())
         for i in range(10):
-            name_type_cell = "num" + str(i)
-            self.cell_type_surface.append(pygame.image.load(self.textures[name_type_cell]).convert())
-        self.cell_type_surface.append(pygame.image.load(self.textures["division"]).convert())
-        self.cell_type_surface.append(pygame.image.load(self.textures["equality"]).convert())
-        self.cell_type_surface.append(pygame.image.load(self.textures["minus"]).convert())
-        self.cell_type_surface.append(pygame.image.load(self.textures["multiply"]).convert())
-        self.cell_type_surface.append(pygame.image.load(self.textures["plus"]).convert())
+            name_type_cell = "rug_num" + str(i)
+            self.cell_type_surface.append(get_image(name_type_cell).convert())
+        self.cell_type_surface.append(get_image("rug_div").convert())
+        self.cell_type_surface.append(get_image("rug_eq").convert())
+        self.cell_type_surface.append(get_image("rug_minus").convert())
+        self.cell_type_surface.append(get_image("rug_mul").convert())
+        self.cell_type_surface.append(get_image("rug_plus").convert())
 
         for i in range(16):
             self.cell_type_surface[i] = pygame.transform.scale(self.cell_type_surface[i],
@@ -484,17 +495,18 @@ def first_field_textures(self):
         self.blocks_surface = []
         for i in range(10):
             name_block = "rblock" + str(i)
-            self.blocks_surface.append(pygame.image.load(self.textures[name_block]).convert_alpha())
+            self.blocks_surface.append(get_image(name_block).convert_alpha())
             self.blocks_surface[i] = pygame.transform.scale(self.blocks_surface[i],
                                                             (self.cell_size[0] * 0.4, self.cell_size[1] * 0.4))
         name_loaded_robot = "polzun_loaded"
         if self.num_robot == 4:
             name_loaded_robot = "tolkun_loaded"
-        self.robot_loaded = pygame.image.load(self.textures[name_loaded_robot]).convert_alpha()
+
+        self.robot_loaded = get_image(name_loaded_robot).convert_alpha()
         self.robot_loaded = pygame.transform.scale(self.robot_loaded,
                                                    (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
-        name_loaded_robot = name_loaded_robot + "_dead"
-        self.robot_loaded_dead = pygame.image.load(self.textures[name_loaded_robot]).convert_alpha()
+
+        self.robot_loaded_dead = get_image(name_loaded_robot + "_dead").convert_alpha()
         self.robot_loaded_dead = pygame.transform.scale(self.robot_loaded_dead,
                                                         (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
@@ -540,13 +552,13 @@ class Vertun:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["vertun_surface"]).convert_alpha()
+        self.robot_surface = get_image("vertun").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
         self.robot_surface = pygame.transform.rotate(self.robot_surface, -90 * self.angle)
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_vertun_surface"]).convert_alpha()
+        self.broken_robot_surface = get_image("vertun_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
@@ -693,21 +705,16 @@ class Dvigun:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["dvigun_surface"]).convert_alpha()
+        self.robot_surface = get_image("dvigun").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_dvigun_surface"]).convert_alpha()
+		# FIXME dvigun_dead.png needed
+        self.broken_robot_surface = get_image("vertun_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.block_surface = pygame.image.load(self.textures["block"]).convert()
-        self.block_surface = pygame.transform.scale(self.block_surface,
-                                                    (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
-        self.block2_surface = pygame.image.load(self.textures["block2"]).convert_alpha()
-        self.block2_surface = pygame.transform.scale(self.block2_surface,
-                                                     (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
         self.angle = game.angle # 0 -> 0, 1 -> 90, 2 -> 180, 3 -> 270
         self.robot_surface = pygame.transform.rotate(self.robot_surface, -90 * self.angle)
 
@@ -755,21 +762,16 @@ class Tyagun:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["tyagun_surface"]).convert_alpha()
+        self.robot_surface = get_image("tyagun").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_vertun_surface"]).convert_alpha()
+		# FIXME  tyagun_dead.png neaded
+        self.broken_robot_surface = get_image("vertun_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.block_surface = pygame.image.load(self.textures["block"]).convert()
-        self.block_surface = pygame.transform.scale(self.block_surface,
-                                                    (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
-        self.block2_surface = pygame.image.load(self.textures["block2"]).convert_alpha()
-        self.block2_surface = pygame.transform.scale(self.block2_surface,
-                                                     (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
         self.angle = 0  # 0 -> 0, 1 -> 90, 2 -> 180, 3 -> 270
 
     def blit(self, change_x, change_y, surface):
@@ -828,10 +830,10 @@ def load(self):
 def unload(self):
     change_x, change_y = coordinate_from_angle(self.angle)
     if self.cells[(self.y + change_y) * self.max_x + self.x + change_x]["blocks"] == 0 and self.cargo_number != -1:
-        robot_name = "polzun_surface"
+        robot_name = "polzun"
         if self.num_robot == 4:
-            robot_name = "tolkun_surface"
-        self.robot_surface = pygame.image.load(self.textures[robot_name]).convert_alpha()
+            robot_name = "tolkun"
+        self.robot_surface = get_image(robot_name + "_empty").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
@@ -900,11 +902,11 @@ class Polzun:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["polzun_surface"]).convert_alpha()
+        self.robot_surface = get_image("polzun_empty").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_polzun"]).convert_alpha()
+        self.broken_robot_surface = get_image("polzun_empty_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
@@ -970,11 +972,11 @@ class Tolkun:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["tolkun_surface"]).convert_alpha()
+        self.robot_surface = get_image("tolkun_empty").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_tolkun"]).convert_alpha()
+        self.broken_robot_surface = get_image("tolkun_empty_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
@@ -1057,23 +1059,16 @@ class Train:
 
         first_field_textures(self)
 
-        self.robot_surface = pygame.image.load(self.textures["train_surface"]).convert_alpha()
+        self.robot_surface = get_image("train").convert_alpha()
         self.robot_surface = pygame.transform.scale(self.robot_surface,
                                                     (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.broken_robot_surface = pygame.image.load(self.textures["broken_train_surface"]).convert_alpha()
+        self.broken_robot_surface = get_image("train_dead").convert_alpha()
         self.broken_robot_surface.set_colorkey((255, 255, 255))
         self.broken_robot_surface = pygame.transform.scale(self.broken_robot_surface,
                                                            (min(self.cell_size) * 0.8, min(self.cell_size) * 0.8))
 
-        self.block_surface = pygame.image.load(game.textures["block"]).convert()
-        self.block_surface = pygame.transform.scale(self.block_surface,
-                                                    (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
-        self.block2_surface = pygame.image.load(game.textures["block2"]).convert_alpha()
-        self.block2_surface = pygame.transform.scale(self.block2_surface,
-                                                     (self.cell_size[0] * 0.8, self.cell_size[1] * 0.8))
-
-        self.scepka_surface = pygame.image.load(game.textures["scepka"]).convert()
+        self.scepka_surface = get_image("scepka").convert()
         self.scepka_surface = pygame.transform.scale(self.scepka_surface,
                                                      (self.cell_size[0] * 0.6, self.cell_size[1] * 0.2))
 
