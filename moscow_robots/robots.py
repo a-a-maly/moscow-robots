@@ -1,4 +1,3 @@
-import math
 import pygame
 import time
 import json
@@ -126,10 +125,11 @@ def turn_clockwise(self, type_robot, ratio):
             self.mas_trains.pop(act_num)
         self.blit_sostavs()
 
-    #time.sleep(1 * self.speed / 200)
+    sqrt_2 = 2 ** 0.5
+
     self.screen.blit(pygame.transform.rotate(self.robot_surface, -45 * ratio), (
-        self.cell_size[0] * (self.x + 1 - math.sqrt(2) + 0.25 * math.sqrt(2)),
-        self.cell_size[1] * (self.y + 1 - math.sqrt(2) + 0.25 * math.sqrt(2))))
+        self.cell_size[0] * (self.x + 1 - 0.75 * sqrt_2),
+        self.cell_size[1] * (self.y + 1 - 0.75 * sqrt_2)))
 
     if self.num_robot == 5 and len(mas) > 1:  # отображение сцепки при повернутом на 45 градусов паровозе
         old_pos = self.x + self.y * self.max_x
@@ -139,8 +139,8 @@ def turn_clockwise(self, type_robot, ratio):
     #time.sleep(1 * self.speed / 200)
 
     if self.num_robot in [3, 4] and self.cargo_number > 0:
-        coor_x = (1 - 0.4 * math.sqrt(2)) / 2 + self.x
-        coor_y = (1 - 0.4 * math.sqrt(2)) / 2 + self.y
+        coor_x = (0.5 - 0.2 * sqrt_2) + self.x
+        coor_y = (0.5 - 0.2 * sqrt_2) + self.y
         blit_object(self, coor_x, coor_y,
                     pygame.transform.rotate(self.blocks_surface[self.cargo_number - 1], -45 * ratio))
 
