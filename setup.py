@@ -7,9 +7,11 @@ setuptools.setup(
 	author = "Milya Rayko",
 	description = "Moscow Robots library support",
 	long_description = open('README.md').read(),
-	packages=setuptools.find_packages(),
-	install_requires=['pygame', 'Pillow'],
-	classifiers=[
+	packages = setuptools.find_packages(),
+	install_requires = ['pygame', 'Pillow'],
+	classifiers = [
 		'Programming Language :: Python :: 3',
 	],
+	include_package_data = True,
+	package_data = {'' : ['textures/*.png']}
 )
