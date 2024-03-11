@@ -1,0 +1,560 @@
+{
+    "settings": {
+        "robot": 0,
+        "start_x": 2,
+        "start_y": 1,
+        "angle": 1,
+        "max_x": 8,
+        "max_y": 8,
+        "screen_resolution": [
+            800,
+            800
+        ]
+    },
+    "cells": [
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": true,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        },
+        {
+            "broken": false,
+            "painted": false,
+            "end": 0,
+            "blocks": 0
+        }
+    ],
+    "horizontal_fences": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "vertical_fences": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+    ],
+    "end_position": [
+        2,
+        1
+    ],
+    "is_win": false,
+    "needed": [
+        [
+            5,
+            2
+        ]
+    ],
+    "needless": []
+}
