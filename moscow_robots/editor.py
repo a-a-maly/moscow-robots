@@ -313,7 +313,7 @@ def edit_level(file_name=None, settings=None):
     finish_blocku_surface = get_image("block_any_dest").convert_alpha()
     finish_blocku_surface = pygame.transform.scale(finish_blocku_surface, (cell_size[0], cell_size[1]))
 
-    name_usual_cell = "field_normal"]
+    name_usual_cell = "field_normal"
     if settings["robot"] in [1, 2, 5]:
         name_usual_cell = "field_normal_other"
     if settings["robot"] in [3, 4]:  # polzun tolkun
@@ -662,11 +662,9 @@ def edit_level(file_name=None, settings=None):
         json.dump(initial_data, json_file, indent=4)
 
     game_name = file_name_base + "_game.py"
-    if not os.path.extsts(game_name):
+    if not os.path.exists(game_name):
         with open(game_name, 'w') as fp:
-            print("from moscow_robots import piktomir\n#", file=fp, end="")
-            print(version, file=fp)
-            print('mg = piktomir.Game("', file=fp, end="")
-            print(file_name, file=fp, end="")
-            print('")\n\n\nmg.main_loop()', file=fp)
+            print("from moscow_robots import Game", file=fp)
+            print("mg = Game(\"" + file_name + "\")", file=fp)
+            print("mg.main_loop()", file=fp)
 
