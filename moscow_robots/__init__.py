@@ -1,5 +1,6 @@
 from .data import get_image
 from .piktomir import Game
+from .editor import edit_level
 
 __version__ = "0.0.1"
 __author__ = "Dmitrij Preobrazhenskij, Alexander A. Maly, Milya Rayko"
