@@ -7,11 +7,24 @@ from moscow_robots.data import get_image
 
 
 # 0 вертун 1 двигун 2 тягун 3 ползун 4 толкун 5 поезд
-robot_names = ["vertun", "dvigun", "tyagun", "polzun", "tolkun", "train"]
+_robot_names = ["vertun", "dvigun", "tyagun", "polzun", "tolkun", "train"]
 
-def edit_level(file_name=None, settings=None):
-    if settings is None:
-        settings = {}
+def edit_level(file_name=None, robot_kind=0, field_size=None, screen_size=None):
+    settings = {}
+    settings["robot"] = robot_kind
+    settings["start_x"] = 0
+    settings["start_y"] = 0
+    settings["angle"] = 0
+
+    if field_size is None:
+        field_size = (8, 8)
+
+    if screen_size is None:
+        screen_size = (800, 800)
+
+    settings["max_x"] = field_size[0]
+    settings["max_y"] = field_size[1]
+    settings["screen_resolution"] = list(screen_size)
 
     def sostav_neglav_with(pos, mas_trains):
         for i in range(len(mas_trains)):
@@ -281,16 +294,23 @@ def edit_level(file_name=None, settings=None):
         mas_trains = []
 
     robot_kind = settings["robot"]
-    name_robot = robot_names[settings["robot"]]
+    name_robot = _robot_names[settings["robot"]]
     robot_pos = [settings["start_x"], settings["start_y"]]
     angle = settings["angle"]
-    cell_size = [settings["screen_resolution"][0] / settings["max_x"],
-                 settings["screen_resolution"][1] / settings["max_y"]]
-    razmer_y = max(settings["screen_resolution"][1], 6 * cell_size[1]/2)
-    screen_resolution = [math.ceil(settings["screen_resolution"][0]+cell_size[0]), math.ceil(razmer_y)]
+
+    cell_sizes = [settings["screen_resolution"][0] // (1 + settings["max_x"]),
+                 settings["screen_resolution"][1] // settings["max_y"]]
+    cell_size = [min(cell_sizes)] * 2
+
+    razmer_x = max((settings["max_x"] + 1) * cell_size[0], 3 * cell_size[0])
+    razmer_y = max(settings["max_y"] * cell_size[1], 3 * cell_size[1])
+    screen_resolution = [razmer_x, razmer_y]
 
     pygame.init()
+    print("screen_resolution", screen_resolution)
     screen = pygame.display.set_mode(screen_resolution)
+    print("real resolution", screen.get_size())
+
 
     name_end_place = "robot_dest"
     if settings["robot"] in [3, 4]:
