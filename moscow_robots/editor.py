@@ -3,12 +3,13 @@ import json
 from PIL import Image
 import os.path
 import math
+from moscow_robots.data import get_image
 
 
 # 0 вертун 1 двигун 2 тягун 3 ползун 4 толкун 5 поезд
-robot_names = ["vertun", "dvigun", "tiagun", "polzun", "tolkun", "train"]
+robot_names = ["vertun", "dvigun", "tyagun", "polzun", "tolkun", "train"]
 
-def robot_level(file_name=None, settings=None):
+def edit_level(file_name=None, settings=None):
     if settings is None:
         settings = {}
 
@@ -63,7 +64,7 @@ def robot_level(file_name=None, settings=None):
                 # if x == 0 or x == self.count_of_cells[0]:
                 #     self.vertical_fences[y * (self.count_of_cells[0] + 1) + x] = 1
                 if vertical_fences[y * (max_x + 1) + x] == 1:
-                    screen.blit(Iwall_surface,
+                    screen.blit(vwall_surface,
                                 (x * max_x - max_x / 20, max_y * (y + 1 / 10)))
 
         # горизонтальные заборы _
@@ -72,7 +73,7 @@ def robot_level(file_name=None, settings=None):
                 # if y == 0 or y == self.count_of_cells[0]:
                 #     self.horizontal_fences[y * self.count_of_cells[0] + x] = 1
                 if horizontal_fences[y * max_x + x] == 1:
-                    screen.blit(_wall_surface,
+                    screen.blit(hwall_surface,
                                 (max_x * (x + 1 / 10), y * max_y - max_y / 20))
 
     def blit(change_x, change_y, surface, pos, max_x):
@@ -175,13 +176,13 @@ def robot_level(file_name=None, settings=None):
             for y in range(settings["max_y"]):
                 for x in range(settings["max_x"] + 1):
                     if vertical_fences[y * (settings["max_x"] + 1) + x] == 1:
-                        screen.blit(Iwall_surface,
+                        screen.blit(vwall_surface,
                                     (x * cell_size[0] - cell_size[0] / 20, cell_size[1] * (y + 1 / 10)))
             # горизонтальные заборы _
             for y in range(settings["max_y"] + 1):
                 for x in range(settings["max_x"]):
                     if horizontal_fences[y * settings["max_x"] + x] == 1:
-                        screen.blit(_wall_surface,
+                        screen.blit(hwall_surface,
                                     (cell_size[0] * (x + 1 / 10), y * cell_size[1] - cell_size[1] / 20))
         elif settings["robot"] in [3, 4]:
             for y in range(settings["max_y"]):
@@ -238,7 +239,7 @@ def robot_level(file_name=None, settings=None):
 
 
     if not file_name:
-        file_name = "initial_data.json"
+        file_name = "mr-level.json"
         print("No file name given, using", file_name)
 
     file_name_base = file_name.split(".")[0]
@@ -291,87 +292,90 @@ def robot_level(file_name=None, settings=None):
     pygame.init()
     screen = pygame.display.set_mode(screen_resolution)
 
-    name_end_place = "end_place"
+    name_end_place = "robot_dest"
     if settings["robot"] in [3, 4]:
-        name_end_place = "end_polzun"
-    end_place_surface = pygame.image.load(textures[name_end_place]).convert_alpha()
+        name_end_place = "rug_red"
+    end_place_surface = get_image(name_end_place).convert_alpha()
     end_place_surface = pygame.transform.scale(end_place_surface, (cell_size[0], cell_size[1]))
 
-    finish_block_surface = pygame.image.load(textures["finish_block"]).convert_alpha()
+    block_surface = get_image("block_square").convert()
+    block_surface = pygame.transform.scale(block_surface, (cell_size[0]*0.8, cell_size[1]*0.8))
+
+    block2_surface = get_image("block_circle").convert_alpha()
+    block2_surface = pygame.transform.scale(block2_surface, (cell_size[0]*0.8, cell_size[1]*0.8))
+
+    finish_block_surface = get_image("block_square_dest").convert_alpha()
     finish_block_surface = pygame.transform.scale(finish_block_surface, (cell_size[0], cell_size[1]))
 
-    finish_block2_surface = pygame.image.load(textures["finish_block2"]).convert_alpha()
+    finish_block2_surface = get_image("block_circle_dest").convert_alpha()
     finish_block2_surface = pygame.transform.scale(finish_block2_surface, (cell_size[0], cell_size[1]))
 
-    finish_blocku_surface = pygame.image.load(textures["finish_blocku"]).convert_alpha()
+    finish_blocku_surface = get_image("block_any_dest").convert_alpha()
     finish_blocku_surface = pygame.transform.scale(finish_blocku_surface, (cell_size[0], cell_size[1]))
 
-    name_usual_cell = textures["usual_cell_surface"]
+    name_usual_cell = "field_normal"]
     if settings["robot"] in [1, 2, 5]:
-        name_usual_cell = textures["usual_cell_surface2"]
+        name_usual_cell = "field_normal_other"
     if settings["robot"] in [3, 4]:  # polzun tolkun
-        name_usual_cell = textures["usual_cell_surface3"]
-    usual_cell_surface = pygame.image.load(name_usual_cell).convert()
-    usual_cell_surface = pygame.transform.scale(usual_cell_surface,
-                                                (cell_size[0], cell_size[1]))
-    painted_cell_surface = pygame.image.load(textures["painted_cell_surface"]).convert()
+        name_usual_cell = "rug_green"
+    usual_cell_surface = get_image(name_usual_cell).convert()
+    usual_cell_surface = pygame.transform.scale(usual_cell_surface, (cell_size[0], cell_size[1]))
+    painted_cell_surface = get_image("field_normal_painted").convert()
     painted_cell_surface = pygame.transform.scale(painted_cell_surface, (cell_size[0], cell_size[1]))
 
-    broken_cell_surface = pygame.image.load(textures["broken_cell_surface"]).convert()
+    broken_cell_surface = get_image("field_broken").convert()
     broken_cell_surface = pygame.transform.scale(broken_cell_surface, (cell_size[0], cell_size[1]))
 
-    painted_broken_cell_surface = pygame.image.load(textures["painted_broken_cell_surface"]).convert()
+    painted_broken_cell_surface = get_image("field_broken_painted").convert()
     painted_broken_cell_surface = pygame.transform.scale(painted_broken_cell_surface,
                                                          (cell_size[0], cell_size[1]))
 
     if settings["robot"] == 5:
-        scepka_surface = pygame.image.load(textures["scepka"]).convert()
+        scepka_surface = get_image("scepka").convert()
         scepka_surface = pygame.transform.scale(scepka_surface,
                                                 (cell_size[0] * 0.6, cell_size[1] * 0.2))
         scepka1_surface = pygame.transform.rotate(scepka_surface, 90)
 
     if settings["robot"] in [3, 4]:
-        cell_type_surface = [pygame.image.load(textures["standart_cell_polzun"]).convert_alpha()]
+        cell_type_surface = []
+        cell_type_surface.append(get_image("rug_green").convert_alpha())
+
         for i in range(10):
             name_type_cell = "num" + str(i)
-            cell_type_surface.append(pygame.image.load(textures[name_type_cell]).convert_alpha())
-            cell_type_surface[i] = pygame.transform.scale(cell_type_surface[i],
-                                                          (cell_size[0], cell_size[1]))
+            cell_type_surface.append(get_image(name_type_cell).convert_alpha())
+
         cell_type_surface.append(end_place_surface)
-    else:
-        _wall_surface = pygame.image.load(textures["_wall_surface"]).convert()
-        _wall_surface = pygame.transform.scale(_wall_surface,
-                                               (cell_size[0] * 4 / 5, cell_size[1] / 10))
-        Iwall_surface = pygame.image.load(textures["Iwall_surface"]).convert()
-        Iwall_surface = pygame.transform.scale(Iwall_surface,
-                                               (cell_size[0] / 10, cell_size[1] * 4 / 5))
 
+        for i in range(len(cell_type_surface)):
+            cell_type_surface[i] = pygame.transform.scale(cell_type_surface[i], (cell_size[0], cell_size[1]))
 
-    vertun_surface = pygame.image.load(textures[name_robot + "_surface"]).convert_alpha()
-    vertun_surface = pygame.transform.scale(vertun_surface,
-                                            (min(cell_size) * 0.8, min(cell_size) * 0.8))
-
-    if settings["robot"] in [1, 2, 5]:
-        block_surface = pygame.image.load(textures["block"]).convert()
-        block_surface = pygame.transform.scale(block_surface, (cell_size[0]*0.8, cell_size[1]*0.8))
-        block2_surface = pygame.image.load(textures["block2"]).convert_alpha()
-        block2_surface = pygame.transform.scale(block2_surface, (cell_size[0]*0.8, cell_size[1]*0.8))
-    elif settings["robot"] in [3, 4]:
         blocks_surface = []
         for i in range(10):
             name_block = "rblock" + str(i)
-            blocks_surface.append(pygame.image.load(textures[name_block]).convert())
+            blocks_surface.append(get_image(name_block).convert())
             blocks_surface[i] = pygame.transform.scale(blocks_surface[i], (cell_size[0] * 0.4, cell_size[1] * 0.4))
+
+
+    hwall_surface = get_image("wall_hor").convert()
+    hwall_surface = pygame.transform.scale(hwall_surface, (cell_size[0] * 4 / 5, cell_size[1] / 10))
+    vwall_surface = get_image("wall_vert").convert()
+    vwall_surface = pygame.transform.scale(vwall_surface, (cell_size[0] / 10, cell_size[1] * 4 / 5))
+
+    surface_name = name_robot
+    if settings["robot"] in [3, 4]:
+        surface_name += "_empty"
+    vertun_surface = get_image(surface_name).convert_alpha()
+    vertun_surface = pygame.transform.scale(vertun_surface, (min(cell_size) * 0.8, min(cell_size) * 0.8))
 
     tool_bar_surface = []
     d_tool_bar_surface = [0]
     for i in range(6):
-        name_tool_bar = "num_tool_bar" + str(i+1)
-        tool_bar_surface.append(pygame.image.load(textures[name_tool_bar]).convert_alpha())
+        name_tool_bar = "tool_bar" + str(i + 1)
+        tool_bar_surface.append(get_image(name_tool_bar).convert_alpha())
         tool_bar_surface[i] = pygame.transform.scale(tool_bar_surface[i], (cell_size[0], cell_size[0] * 0.5))
         if i > 0:
             name_tool_bar = name_tool_bar + "d"
-            d_tool_bar_surface.append(pygame.image.load(textures[name_tool_bar]).convert_alpha())
+            d_tool_bar_surface.append(get_image(name_tool_bar).convert_alpha())
             d_tool_bar_surface[i] = pygame.transform.scale(d_tool_bar_surface[i], (cell_size[0], cell_size[0] * 0.5))
 
     pygame.display.flip()
@@ -410,17 +414,11 @@ def robot_level(file_name=None, settings=None):
         nazh = 0
         ev = pygame.event.wait()
         if ev.type == pygame.QUIT:
-            nazh = 1
-            make_image()
-            pygame.quit()
-            flag = 0
+            break
         if ev.type == pygame.KEYDOWN:
             if ev.key == pygame.K_ESCAPE:
-                nazh = 1
-                make_image()
-                pygame.quit()
-                flag = 0
-        # checks if a mouse is clicked
+                break
+            # checks if a mouse is clicked
         if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 3:
             nazh = 1
             perenos = 0
@@ -636,6 +634,10 @@ def robot_level(file_name=None, settings=None):
 
     # main loop finished
 
+    make_image()
+    pygame.quit()
+    flag = 0
+
     settings["start_x"] = robot_pos[0]
     settings["start_y"] = robot_pos[1]
     settings["angle"] = angle
@@ -664,7 +666,7 @@ def robot_level(file_name=None, settings=None):
         with open(game_name, 'w') as fp:
             print("from moscow_robots import piktomir\n#", file=fp, end="")
             print(version, file=fp)
-            print('game1 = piktomir.Game("', file=fp, end="")
+            print('mg = piktomir.Game("', file=fp, end="")
             print(file_name, file=fp, end="")
-            print('")\n\n\ngame1.main_loop()', file=fp)
+            print('")\n\n\nmg.main_loop()', file=fp)
 
