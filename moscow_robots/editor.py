@@ -281,7 +281,7 @@ def edit_level(file_name=None, robot_kind=0, field_size=None, screen_size=None):
             cells = initial_data["cells"]
 
         for i in range(settings["max_x"] * settings["max_y"]):
-            if cells[i]["sticker"] > 0 and name_robot in ["polzun", "tolkun"]:
+            if cells[i]["sticker"] > 0 and settings["robot"] in [3, 4]:
                 cells[i]["type_cell"] = 11
 
         if "mas_trains" in initial_data.keys():
