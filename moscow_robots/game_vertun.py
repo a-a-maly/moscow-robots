@@ -11,7 +11,7 @@ class RobotData:
         self.y = 0
         self.dir = 0
         self.fpos = None
-        
+
     def load(self, d):
         self.kind = d["kind"]
         self.x = d["x"]
@@ -136,7 +136,7 @@ class GameVertun:
         csize = min(csize_x, csize_y)
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-   
+
         pygame.init()
         self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
@@ -155,6 +155,8 @@ class GameVertun:
 
     def __exit__(self, t, v, tb):
         pygame.image.save(self.screen, self.base_name + ".final.png")
+        ok = self.task_complete()
+        print("ok:", ok)
         self.game_mode = 2 # step by step
         self.finish_step(True, False)
         #print("t", t)
@@ -163,6 +165,21 @@ class GameVertun:
         if not self.robot_alive:
             #print(type(v), len(v))
             return True
+
+    def task_complete(self):
+        if not self.robot_alive:
+            return False
+        if self.robot.fpos is not None:
+            if self.robot.x != self.robot.fpos[0]:
+                return False
+            if self.robot.y != self.robot.fpos[1]:
+                return False
+
+        for y in range(self.field.sy):
+            for x in range(self.field.sx):
+                if self.field.cells[y][x].broken != self.field.cells[y][x].painted:
+                    return False
+        return True
 
     def redraw_field(self):
         self.screen.fill((255, 0, 255)) 
