@@ -116,7 +116,7 @@ class GameRobot:
         self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
+        self.speed = 1000
         self.game_mode = 0
         self.robot_alive = True
         self.background = None
@@ -129,10 +129,13 @@ class GameRobot:
         return self
 
     def __exit__(self, t, v, tb):
-        print(t)
-        print(v)
-        print(tb)
-        if v == "Robot is dead":
+        self.game_mode = 2 # step by step
+        self.finish_step(True, False)
+        #print("t", t)
+        #print("v", v)
+        #print("tb", tb)
+        if not self.robot_alive:
+            #print(type(v), len(v))
             return True
 
     def redraw_field(self):
@@ -188,9 +191,63 @@ class GameRobot:
         if not self.robot_alive:
             t = self.textures.robot_dead
         t = pygame.transform.rotate(t, d * 90)
+        
         bx = cx * x + cx // 10
         by = cy * y + cy // 10
         self.screen.blit(t, (bx, by))
+
+    def move_robot(self):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        x = self.robot.x
+        y = self.robot.y
+        d = self.robot.dir % 4
+        dx, dy = self.direction_vectors[d]
+        dx, dy = dx * cx, dy * cy
+
+
+        t = self.textures.robot
+        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+
+        self.redraw_field()
+        scopy = self.screen.copy()
+
+        m = 4
+        for i in range(m + 1):
+            self.screen.blit(scopy, (0, 0))
+            dxi, dyi = dx * i // m, dy * i // m
+            bx = cx * x + cx // 10 + dxi
+            by = cy * y + cy // 10 + dyi
+            self.screen.blit(t, (bx, by))
+            pygame.display.update()
+            pygame.time.wait(self.speed // (m + 1))
+
+    def rotate_robot(self, dd):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        x = self.robot.x
+        y = self.robot.y
+        d = self.robot.dir % 4
+
+        bx = cx * x
+        by = cy * y
+
+        t = self.textures.robot
+        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+
+        self.redraw_field()
+        scopy = self.screen.copy()
+
+        m = 4
+        for i in range(m + 1):
+            ti = pygame.transform.rotate(t, -90 * dd * i // m)
+            tsize = ti.get_size()
+            self.screen.blit(scopy, (0, 0))
+            dbx = (cx - tsize[0]) // 2
+            dby = (cy - tsize[1]) // 2
+            self.screen.blit(ti, (bx + dbx, by + dby))
+            pygame.display.update()
+            pygame.time.wait(self.speed // (m + 1))
 
     def finish_step(self, need_redraw=True, need_wait=True):
         if need_redraw or not self.robot_alive:
@@ -201,11 +258,12 @@ class GameRobot:
         if need_wait:
             pygame.time.wait(self.speed)
 
-        flag = (self.game_mode == 2)
+        flag = (self.game_mode == 2) or (not self.robot_alive)
         while True:
             for ev in pygame.event.get():
                 if ev.type == pygame.QUIT:
                     sys.exit("Closed by user ")
+                    flag = False
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_TAB:
                         flag = False
@@ -214,7 +272,7 @@ class GameRobot:
                         flag = False
                         self.game_mode = 2
             if not flag:
-                break            
+                break
         if not self.robot_alive:
             raise RuntimeError("Robot is dead")
 
@@ -242,7 +300,7 @@ class GameRobot:
 
     def _cell_normal(self):
         c = self.field.cells[self.robot.y][self.robot.x]
-        return not c.broken or c.painted
+        return not c.broken
 
     def _cell_broken(self):
         c = self.field.cells[self.robot.y][self.robot.x]
@@ -263,26 +321,29 @@ class GameRobot:
             return False
         if not self._path_clear():
             self.robot_alive = False
-        else:
-            d = self.robot.dir % 4
-            dx, dy = self.direction_vectors[d]
-            self.robot.x += dx
-            self.robot.y += dy
-        return True
+            return True
+        self.move_robot()
+        d = self.robot.dir % 4
+        dx, dy = self.direction_vectors[d]
+        self.robot.x += dx
+        self.robot.y += dy
+        return False
 
     def _turn_right(self): 
         if not self.robot_alive:
             return False
+        self.rotate_robot(1)
         d = (self.robot.dir + 1) % 4
         self.robot.dir = d
-        return True
+        return False
         
     def _turn_left(self): 
         if not self.robot_alive:
             return False
+        self.rotate_robot(-1)
         d = (self.robot.dir + 3) % 4
         self.robot.dir = d
-        return True
+        return False
 
     def cell_normal(self):
         ans = self._cell_normal()
@@ -303,26 +364,16 @@ class GameRobot:
 
     def step_forward(self):
         ans = self._step_forward()
-        self.finish_step(ans, True)
+        self.finish_step(ans, ans)
 
     def turn_right(self): 
         ans = self._turn_right()
-        self.finish_step(ans, True)
+        self.finish_step(ans, ans)
 
     def turn_left(self): 
         ans = self._turn_left()
-        self.finish_step(ans, True)
+        self.finish_step(ans, ans)
 
     def fix_cell(self):
         ans = self._fix_cell()
         self.finish_step(ans, True)
-
-        
-
-
-
-
-
-
-
- 
