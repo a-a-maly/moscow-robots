@@ -1,7 +1,7 @@
 from .data import get_image
 from .piktomir import Game
 from .editor import edit_level
-from .game import GameRobot
+from .game import GameVertun
 
 __version__ = "0.0.2"
 __author__ = "Dmitrij Preobrazhenskij, Alexander A. Maly, Milya Rayko"
