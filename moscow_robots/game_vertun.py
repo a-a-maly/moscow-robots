@@ -154,6 +154,7 @@ class GameVertun:
         return self
 
     def __exit__(self, t, v, tb):
+        pygame.image.save(self.screen, self.base_name + ".final.png")
         self.game_mode = 2 # step by step
         self.finish_step(True, False)
         #print("t", t)
