@@ -23,6 +23,32 @@ class CellData:
     def __init__(self):
         self.broken = False
         self.painted = False
+        self.t = 0
+
+    def __str__(self):
+        res = ""
+        if self.broken:
+            res += "b"
+        if self.painted:
+            res += "p"
+        if self.t:
+            res += "t" + str(int(self.t))
+        return res
+
+    def decode(self, s):
+        self.broken = False
+        self.painted = False
+        self.t = 0
+        for i in range(len(s)):
+            c = s[i]
+            if c == 'b':
+                self.broken = True
+            elif c == 'p':
+                self.painted = True
+            elif c == ' t':
+                self.t = int(s[i+1:].strip())
+                break;
+
 
 class FieldData:
     def __init__(self):
@@ -40,21 +66,20 @@ class FieldData:
         self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
         self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
         self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
-        _cells = d["cells"]
+        cells = d["cells"]
         for y in range(sy):
             for x in range(sx):
-                self.cells[y][x].broken = _cells[y][x].get("broken", 0) 
-                self.cells[y][x].painted = _cells[y][x].get("painted", 0) 
-        _vfences = d.get("vfences")
-        if _vfences:
+                self.cells[y][x].decode(cells[y][x])
+        vfences = d.get("vfences")
+        if vfences:
             for y in range(sy):
                 for x in range(sx - 1):
-                    self.vfences[y][x] = _vfences[y][x]
-        _hfences = d.get("hfences")
-        if _hfences:
+                    self.vfences[y][x] = vfences[y][x]
+        hfences = d.get("hfences")
+        if hfences:
             for y in range(sy - 1):
                 for x in range(sx):
-                    self.hfences[y][x] = _hfences[y][x]
+                    self.hfences[y][x] = hfences[y][x]
 
 class Textures:
     def __init__(self, robot_kind, csize):
