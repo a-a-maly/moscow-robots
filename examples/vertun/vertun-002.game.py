@@ -1,11 +1,10 @@
 import moscow_robots as mr
 
-with mr.GameRobot("vertun-002.json") as  r:
-    print(type(r))
+with mr.GameVertun("vertun-002.json") as  r:
 
     while r.path_clear():
         r.step_forward()
-    r.step_forward()
+    #r.step_forward()
     r.turn_right()
     r.step_forward()
     r.turn_right()
@@ -26,6 +25,4 @@ with mr.GameRobot("vertun-002.json") as  r:
     r.fix_cell()
     while r.path_clear():
         r.step_forward()
-
-    
 

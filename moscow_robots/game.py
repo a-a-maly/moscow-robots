@@ -4,7 +4,7 @@ from moscow_robots.data import get_image
 import sys
 
 
-class Robot:
+class RobotData:
     def __init__(self):
         self.kind = 0
         self.x = 0
@@ -19,16 +19,16 @@ class Robot:
         self.dir = d["dir"]
         self.fpos = d.get("fpos")
 
-class Cell:
+class CellData:
     def __init__(self):
         self.broken = False
         self.painted = False
 
-class Field:
+class FieldData:
     def __init__(self):
         self.sx = 1
         self.sy = 1
-        self.cells = [[Cell() for x in range(self.sx)] for y in range(self.sy)]
+        self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
         self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
         self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
 
@@ -37,7 +37,7 @@ class Field:
         sy = d["sy"]
         self.sx = sx
         self.sy = sy
-        self.cells = [[Cell() for x in range(sx)] for i in range(sy)]
+        self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
         self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
         self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
         _cells = d["cells"]
@@ -87,7 +87,7 @@ class Textures:
         self.msg_lose = pygame.transform.scale(t, (3 * csize[0], 3 * csize[1] // 2))
 
 
-class GameRobot:
+class GameVertun:
 
     def __init__(self, json_name):
         self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
@@ -97,11 +97,11 @@ class GameRobot:
         with open(json_name, "r") as json_file:
             self.json_data = json.load(json_file)
 
-        self.robot = Robot()
+        self.robot = RobotData()
         self.robot.load(self.json_data["robot"])
         self.robot_kind = self.robot.kind
 
-        self.field = Field()
+        self.field = FieldData()
         self.field.load(self.json_data["field"])
         self.fsize = (self.field.sx, self.field.sy)
 
@@ -116,7 +116,7 @@ class GameRobot:
         self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 1000
+        self.speed = 100
         self.game_mode = 0
         self.robot_alive = True
         self.background = None
