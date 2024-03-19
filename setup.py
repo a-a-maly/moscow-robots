@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
 	name = "moscow_robots",
-	version = "0.0.2",
+	version = "0.0.3",
 	url = "https://github.com/a-a-maly/moscow-robots.git",
 	author = "Alexander A. Maly",
 	description = "Moscow Robots library support",
