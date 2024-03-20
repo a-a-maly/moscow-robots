@@ -82,7 +82,7 @@ class GameIskun:
         ok = self.task_complete()
         print("ok:", ok)
         self.game_mode = 2 # step by step
-        self.finish_step(True, False)
+        self.finish_step(True, False, False)
         if not self.robot_alive:
             return True
 
@@ -185,7 +185,7 @@ class GameIskun:
             pygame.time.wait(self.speed // (m + 1))
 
 
-    def finish_step(self, need_redraw=True, need_wait=True):
+    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
         if need_redraw or not self.robot_alive:
             self.redraw_field()
             self.redraw_robot()
@@ -194,7 +194,7 @@ class GameIskun:
         if need_wait:
             pygame.time.wait(self.speed)
 
-        flag = (self.game_mode == 2) or (not self.robot_alive)
+        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
         while True:
             for ev in pygame.event.get():
                 if ev.type == pygame.QUIT:
@@ -209,7 +209,7 @@ class GameIskun:
                         self.game_mode = 2
             if not flag:
                 break
-        if not self.robot_alive:
+        if need_raise and not self.robot_alive:
             raise RuntimeError("Robot is dead")
 
 
