@@ -1,91 +1,15 @@
 import pygame
 import json
 from moscow_robots.data import get_image
+from moscow_robots.game_vertun import RobotData, CellData, FieldData
 import sys
 
 
-class RobotData:
-    def __init__(self):
-        self.kind = 0
-        self.x = 0
-        self.y = 0
-        self.dir = 0
-        self.fpos = None
-
-    def load(self, d):
-        self.kind = d["kind"]
-        self.x = d["x"]
-        self.y = d["y"]
-        self.dir = d["dir"]
-        self.fpos = d.get("fpos")
-
-class CellData:
-    def __init__(self):
-        self.broken = False
-        self.painted = False
-        self.t = 0
-
-    def __str__(self):
-        res = ""
-        if self.broken:
-            res += "b"
-        if self.painted:
-            res += "p"
-        if self.t:
-            res += "t" + str(int(self.t))
-        return res
-
-    def decode(self, s):
-        self.broken = False
-        self.painted = False
-        self.t = 0
-        for i in range(len(s)):
-            c = s[i]
-            if c == 'b':
-                self.broken = True
-            elif c == 'p':
-                self.painted = True
-            elif c == ' t':
-                self.t = int(s[i+1:].strip())
-                break;
-
-
-class FieldData:
-    def __init__(self):
-        self.sx = 1
-        self.sy = 1
-        self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
-        self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
-        self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
-
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
-        self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
-        self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
-        self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
-        cells = d["cells"]
-        for y in range(sy):
-            for x in range(sx):
-                self.cells[y][x].decode(cells[y][x])
-        vfences = d.get("vfences")
-        if vfences:
-            for y in range(sy):
-                for x in range(sx - 1):
-                    self.vfences[y][x] = vfences[y][x]
-        hfences = d.get("hfences")
-        if hfences:
-            for y in range(sy - 1):
-                for x in range(sx):
-                    self.hfences[y][x] = hfences[y][x]
-
 class Textures:
     def __init__(self, robot_kind, csize):
-        t = get_image("vertun").convert_alpha()
+        t = get_image("iskun").convert_alpha()
         self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
-        t = get_image("vertun_dead").convert_alpha()
+        t = get_image("iskun_dead").convert_alpha()
         self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
         t = get_image("robot_dest").convert_alpha()
         self.robot_dest = pygame.transform.scale(t, csize)
@@ -112,7 +36,7 @@ class Textures:
         self.msg_lose = pygame.transform.scale(t, (3 * csize[0], 3 * csize[1] // 2))
 
 
-class GameVertun:
+class GameIskun:
 
     def __init__(self, json_name):
         self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
@@ -158,12 +82,8 @@ class GameVertun:
         ok = self.task_complete()
         print("ok:", ok)
         self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        #print("t", t)
-        #print("v", v)
-        #print("tb", tb)
+        self.finish_step(True, False)
         if not self.robot_alive:
-            #print(type(v), len(v))
             return True
 
     def task_complete(self):
@@ -229,7 +149,7 @@ class GameVertun:
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
-        d = (5 - self.robot.dir) % 4
+        d = (4 - self.robot.dir) % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
@@ -248,9 +168,8 @@ class GameVertun:
         dx, dy = self.direction_vectors[d]
         dx, dy = dx * cx, dy * cy
 
-
         t = self.textures.robot
-        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+        t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
 
         self.redraw_field()
         scopy = self.screen.copy()
@@ -265,34 +184,8 @@ class GameVertun:
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
 
-    def rotate_robot(self, dd):
-        cx = self.csize[0]
-        cy = self.csize[1]
-        x = self.robot.x
-        y = self.robot.y
-        d = self.robot.dir % 4
 
-        bx = cx * x
-        by = cy * y
-
-        t = self.textures.robot
-        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
-
-        self.redraw_field()
-        scopy = self.screen.copy()
-
-        m = 4
-        for i in range(m + 1):
-            ti = pygame.transform.rotate(t, -90 * dd * i // m)
-            tsize = ti.get_size()
-            self.screen.blit(scopy, (0, 0))
-            dbx = (cx - tsize[0]) // 2
-            dby = (cy - tsize[1]) // 2
-            self.screen.blit(ti, (bx + dbx, by + dby))
-            pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
+    def finish_step(self, need_redraw=True, need_wait=True):
         if need_redraw or not self.robot_alive:
             self.redraw_field()
             self.redraw_robot()
@@ -301,7 +194,7 @@ class GameVertun:
         if need_wait:
             pygame.time.wait(self.speed)
 
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
+        flag = (self.game_mode == 2) or (not self.robot_alive)
         while True:
             for ev in pygame.event.get():
                 if ev.type == pygame.QUIT:
@@ -316,9 +209,15 @@ class GameVertun:
                         self.game_mode = 2
             if not flag:
                 break
-        if need_raise and not self.robot_alive:
+        if not self.robot_alive:
             raise RuntimeError("Robot is dead")
 
+
+    def _fix_cell(self):
+        if not self.robot_alive:
+            return False
+        self.field.cells[self.robot.y][self.robot.x].painted = 1
+        return True
 
     def _path_clear(self):
         sx = self.field.sx
@@ -341,24 +240,6 @@ class GameVertun:
             return False
         return True
 
-    def _cell_normal(self):
-        c = self.field.cells[self.robot.y][self.robot.x]
-        return not c.broken
-
-    def _cell_broken(self):
-        c = self.field.cells[self.robot.y][self.robot.x]
-        return c.broken and not c.painted
-
-    def _cell_fixed(self):
-        c = self.field.cells[self.robot.y][self.robot.x]
-        return c.painted
-
-    def _fix_cell(self):
-        if not self.robot_alive:
-            return False
-        self.field.cells[self.robot.y][self.robot.x].painted = 1
-        return True
-
     def _step_forward(self):
         if not self.robot_alive:
             return False
@@ -372,34 +253,13 @@ class GameVertun:
         self.robot.y += dy
         return False
 
-    def _turn_right(self): 
-        if not self.robot_alive:
-            return False
-        self.rotate_robot(1)
-        d = (self.robot.dir + 1) % 4
-        self.robot.dir = d
-        return False
-        
-    def _turn_left(self): 
-        if not self.robot_alive:
-            return False
-        self.rotate_robot(-1)
-        d = (self.robot.dir + 3) % 4
-        self.robot.dir = d
-        return False
-
-    def cell_normal(self):
-        ans = self._cell_normal()
-        self.finish_step(False, True)
-        return ans
-
-    def cell_broken(self):
-        ans = self._cell_broken()
+    def get_temp(self):
+        ans = self.field.cells[self.robot.y][self.robot.x].t
         self.finish_step(False, True)
         return ans
 
     def cell_fixed(self):
-        ans = self._cell_fixed()
+        ans = self.field.cells[self.robot.y][self.robot.x].painted
         self.finish_step(False, True)
         return ans
 
@@ -407,20 +267,47 @@ class GameVertun:
         ans = self._fix_cell()
         self.finish_step(ans, True)
 
-    def path_clear(self):
+    def path_clear_up(self):
+        self.robot.dir = 0
         ans = self._path_clear()
         self.finish_step(False, True)
         return ans
 
-    def step_forward(self):
+    def path_clear_right(self):
+        self.robot.dir = 1
+        ans = self._path_clear()
+        self.finish_step(False, True)
+        return ans
+
+    def path_clear_down(self):
+        self.robot.dir = 2
+        ans = self._path_clear()
+        self.finish_step(False, True)
+        return ans
+
+    def path_clear_left(self):
+        self.robot.dir = 3
+        ans = self._path_clear()
+        self.finish_step(False, True)
+        return ans
+
+    def step_up(self):
+        self.robot.dir = 0
         ans = self._step_forward()
         self.finish_step(ans, ans)
 
-    def turn_right(self): 
-        ans = self._turn_right()
+    def step_right(self):
+        self.robot.dir = 1
+        ans = self._step_forward()
         self.finish_step(ans, ans)
 
-    def turn_left(self): 
-        ans = self._turn_left()
+    def step_down(self):
+        self.robot.dir = 2
+        ans = self._step_forward()
+        self.finish_step(ans, ans)
+
+    def step_left(self):
+        self.robot.dir = 3
+        ans = self._step_forward()
         self.finish_step(ans, ans)
 
