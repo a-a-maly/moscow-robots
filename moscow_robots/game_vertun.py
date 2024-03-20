@@ -391,14 +391,21 @@ class GameVertun:
     def cell_normal(self):
         ans = self._cell_normal()
         self.finish_step(False, True)
+        return ans
 
     def cell_broken(self):
         ans = self._cell_broken()
         self.finish_step(False, True)
+        return ans
 
     def cell_fixed(self):
         ans = self._cell_fixed()
         self.finish_step(False, True)
+        return ans
+
+    def fix_cell(self):
+        ans = self._fix_cell()
+        self.finish_step(ans, True)
 
     def path_clear(self):
         ans = self._path_clear()
@@ -417,6 +424,3 @@ class GameVertun:
         ans = self._turn_left()
         self.finish_step(ans, ans)
 
-    def fix_cell(self):
-        ans = self._fix_cell()
-        self.finish_step(ans, True)
