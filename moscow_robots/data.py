@@ -70,8 +70,10 @@ texture_names = [
     "train_dead",
     "train",
     "tyagun",
-    "vertun_dead",
     "vertun",
+    "vertun_dead",
+    "iskun",
+    "iskun_dead",
     "wall_hor",
     "wall_vert"
 ]
