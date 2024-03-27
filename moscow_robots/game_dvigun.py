@@ -91,9 +91,9 @@ class Textures:
 
         self.blocks = [None]
         t = get_image("block_square").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5)))
         t = get_image("block_circle").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5)))
 
         t = get_image("wall_hor").convert()
         self.hwall = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] // 10))
@@ -154,6 +154,34 @@ class GameDvigun:
             #print(type(v), len(v))
             return True
 
+    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
+        if need_redraw or not self.robot_alive:
+            self.redraw_field()
+            self.redraw_blocks()
+            self.redraw_robot()
+        pygame.display.update()
+
+        if need_wait:
+            pygame.time.wait(self.speed)
+
+        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
+        while True:
+            for ev in pygame.event.get():
+                if ev.type == pygame.QUIT:
+                    sys.exit("Closed by user ")
+                    flag = False
+                if ev.type == pygame.KEYDOWN:
+                    if ev.key == pygame.K_TAB:
+                        flag = False
+                        self.game_mode = 1
+                    elif ev.key == pygame.K_SPACE:
+                        flag = False
+                        self.game_mode = 2
+            if not flag:
+                break
+        if need_raise and not self.robot_alive:
+            raise RuntimeError("Robot is dead")
+
     def task_complete(self):
         if not self.robot_alive:
             return False
@@ -180,7 +208,7 @@ class GameDvigun:
         for y in range(sy):
             for x in range(sx):
                 cell = self.field.cells[y][x]
-                t = self.textures.fields[cell.target]
+                t = self.textures.fields[cell.bdest]
                 self.screen.blit(t, (x * cx, y * cy))
 
         t = self.textures.vwall
@@ -205,6 +233,18 @@ class GameDvigun:
             by = fpos[1] * cy
             self.screen.blit(t, (bx, by))
 
+    def redraw_blocks(self):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        for y in range(self.field.sy):
+            for x in range(self.field.sx):
+                block = self.field.cells[y][x].block
+                if block:
+                    bx = cx * x + cx // 10
+                    by = cy * y + cy // 10
+                    self.screen.blit(self.textures.blocks[block], (bx, by))
+        pass
+                    
     def redraw_robot(self):
         cx = self.csize[0]
         cy = self.csize[1]
@@ -220,31 +260,47 @@ class GameDvigun:
         by = cy * y + cy // 10
         self.screen.blit(t, (bx, by))
 
-    def move_robot(self):
+    def move_robot(self, k):  # with k blocks ahead
         cx = self.csize[0]
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
         d = self.robot.dir % 4
         dx, dy = self.direction_vectors[d]
-        dx, dy = dx * cx, dy * cy
 
+        blocks = [0 for i in range(k)]
+        for i in range(k):
+            xi, yi = x + dx * (i + 1), y + dy * (i + 1)
+            blocks[i] = self.field.cells[yi][xi].block
+            assert blocks[i]
+            self.field.cells[yi][xi].block = 0
 
-        t = self.textures.robot
-        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+        ts = []
+        ts.append(pygame.transform.rotate(self.textures.robot, ((4 - d) % 4) * 90))
+        for i in range(k):
+            ts.append(self.textures.blocks[blocks[i]])
 
         self.redraw_field()
+        self.redraw_blocks()
         scopy = self.screen.copy()
 
         m = 4
         for i in range(m + 1):
             self.screen.blit(scopy, (0, 0))
-            dxi, dyi = dx * i // m, dy * i // m
-            bx = cx * x + cx // 10 + dxi
-            by = cy * y + cy // 10 + dyi
-            self.screen.blit(t, (bx, by))
+            dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
+            for j in range(k + 1):
+                bx = cx * (x + j * dx) + cx // 10 + dxi
+                by = cy * (y + j * dy) + cy // 10 + dyi
+                self.screen.blit(ts[j], (bx, by))
+            
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
+
+        for i in range(k):
+            xi, yi = x + dx * (i + 2), y + dy * (i + 2)
+            self.field.cells[yi][xi].block = blocks[i]
+        self.robot.x += dx
+        self.robot.y += dy
 
     def rotate_robot(self, dd):
         cx = self.csize[0]
@@ -260,6 +316,7 @@ class GameDvigun:
         t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
 
         self.redraw_field()
+        self.redraw_blocks()
         scopy = self.screen.copy()
 
         m = 4
@@ -273,68 +330,55 @@ class GameDvigun:
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
 
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_robot()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
-        while True:
-            for ev in pygame.event.get():
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-            if not flag:
-                break
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
-
-
-    def _path_clear(self):
+    def _can_pass(self, pos, d):
         sx = self.field.sx
         sy = self.field.sy
+        x0, y0 = pos
+        if not (0 <= x0 < sx):
+            return (False, None)
+        if not (0 <= y0 < sy):
+            return (False, None)
+
+        dx, dy = self.direction_vectors[d % 4]
+        x1 = x0 + dx
+        y1 = y0 + dy
+        if not (0 <= x1 < sx):
+            return (False, None)
+        if not (0 <= y1 < sy):
+            return (False, None)
+
+        if dx and self.field.vfences[y0][min(x0, x1)]:
+            return (False, None)
+        if dy and self.field.hfences[min(y0, y1)][x0]:
+            return (False, None)
+        return (True, self.field.cells[y1][x1].block)
+
+    def _can_move(self, k):
         x = self.robot.x
         y = self.robot.y
         d = self.robot.dir % 4
         dx, dy = self.direction_vectors[d]
-        x1 = x + dx
-        y1 = y + dy
-        if (x1 < 0) or (x1 >= sx) or (y1 < 0) or (y1 >= sy):
-            return False
-        if self.cells[y1][x1].block:
-            return False
-        if dx > 0 and self.field.vfences[y][x]:
-            return False
-        if dx < 0 and self.field.vfences[y][x - 1]:
-            return Flase
-        if dy > 0 and self.field.hfences[y][x]:
-            return False
-        if dy < 0 and self.field.hfences[y - 1][x]:
-            return False
-        return True
+        for i in range(0, k + 1):
+            ok, block = self._can_pass((x + i * dx, y + i * dy), d)
+            if not ok:
+                return -1
+            if not block:
+                return i
+        return -1
+
+    def _path_clear(self):
+        ok, block = self._can_pass((self.robot.x, self.robot.y), self.robot.dir)
+        return ok and not block
 
     def _step_forward(self):
         if not self.robot_alive:
             return False
-        if not self._path_clear():
+        k = self._can_move(2)
+        if k < 0:
             self.robot_alive = False
             return True
-        self.move_robot()
-        d = self.robot.dir % 4
-        dx, dy = self.direction_vectors[d]
-        self.robot.x += dx
-        self.robot.y += dy
+
+        self.move_robot(k)
         return False
 
     def _turn_right(self): 
@@ -355,6 +399,12 @@ class GameDvigun:
 
     def path_clear(self):
         ans = self._path_clear()
+        self.finish_step(False, True)
+        return ans
+
+    def can_move(self):
+        k = self._can_move(2)
+        ans = (k >= 0)
         self.finish_step(False, True)
         return ans
 
