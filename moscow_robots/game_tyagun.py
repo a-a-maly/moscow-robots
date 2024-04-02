@@ -236,8 +236,10 @@ class GameTyagun:
             self.screen.blit(scopy, (0, 0))
             dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
             for j in range(k + 1):
-                bx = cx * (x - j * dx) + cx // 5 + dxi
-                by = cy * (y - j * dy) + cy // 5 + dyi
+                ax = (cx - ts[j].get_width()) // 2
+                ay = (cy - ts[j].get_height()) // 2
+                bx = cx * (x - j * dx) + ax + dxi
+                by = cy * (y - j * dy) + ay + dyi
                 self.screen.blit(ts[j], (bx, by))
             
             pygame.display.update()
