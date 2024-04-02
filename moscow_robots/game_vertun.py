@@ -84,9 +84,12 @@ class FieldData:
 class Textures:
     def __init__(self, robot_kind, csize):
         t = get_image("vertun").convert_alpha()
-        self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.robot = pygame.transform.rotate(t, 90)
         t = get_image("vertun_dead").convert_alpha()
-        self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.robot_dead = pygame.transform.rotate(t, 90)
+
         t = get_image("robot_dest").convert_alpha()
         self.robot_dest = pygame.transform.scale(t, csize)
 
@@ -232,7 +235,7 @@ class GameVertun:
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
-        d = (5 - self.robot.dir) % 4
+        d = (4 - self.robot.dir) % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
@@ -253,7 +256,7 @@ class GameVertun:
 
 
         t = self.textures.robot
-        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+        t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
 
         self.redraw_field()
         scopy = self.screen.copy()
@@ -279,7 +282,7 @@ class GameVertun:
         by = cy * y
 
         t = self.textures.robot
-        t = pygame.transform.rotate(t, ((5 - d) % 4) * 90)
+        t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
 
         self.redraw_field()
         scopy = self.screen.copy()
