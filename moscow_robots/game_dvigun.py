@@ -93,7 +93,7 @@ class Textures:
         t = get_image("block_square").convert_alpha()
         self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
         t = get_image("block_circle").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
+        self.blocks.append(pygame.transform.scale(t, (csize[0] * 2 // 3, csize[1] * 2 // 3)))
 
         t = get_image("wall_hor").convert()
         self.hwall = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] // 10))
@@ -252,9 +252,12 @@ class GameDvigun:
             for x in range(self.field.sx):
                 block = self.field.cells[y][x].block
                 if block:
-                    bx = cx * x + cx * 1 // 5
-                    by = cy * y + cy * 1 // 5
-                    self.screen.blit(self.textures.blocks[block], (bx, by))
+                    t = self.textures.blocks[block]
+                    ax = (cx - t.get_width()) // 2
+                    ay = (cy - t.get_height()) // 2
+                    bx = cx * x + ax
+                    by = cy * y + ay
+                    self.screen.blit(t, (bx, by))
         pass
                     
     def redraw_robot(self):
@@ -268,8 +271,10 @@ class GameDvigun:
             t = self.textures.robot_dead
         t = pygame.transform.rotate(t, d * 90)
         
-        bx = cx * x + cx // 10
-        by = cy * y + cy // 10
+        ax = (cx - t.get_width()) // 2
+        ay = (cy - t.get_height()) // 2
+        bx = cx * x + ax
+        by = cy * y + ay
         self.screen.blit(t, (bx, by))
 
     def move_robot(self, k):  # with k blocks ahead
