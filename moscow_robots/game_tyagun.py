@@ -2,79 +2,15 @@ import pygame
 import json
 from moscow_robots.data import get_image
 from moscow_robots.game_vertun import RobotData
+from moscow_robots.game_dvigun import CellData, FieldData
 import sys
 
 
-class CellData:
-    def __init__(self):
-        self.block = 0
-        self.bdest = 0
-
-    def __str__(self):
-        res = ""
-        if self.block == 1:
-            res += "x"
-        elif self.block == 2:
-            res += "o"
-        if self.bdest & 1:
-            res += "X"
-        if self.bdest & 2:
-            res += "O"
-        return res
-
-    def decode(self, s):
-        self.block = 0
-        self.bdest = 0
-        for i in range(len(s)):
-            c = s[i]
-            if c == 'x':
-                assert self.block == 0
-                self.block = 1
-            elif c == 'o':
-                assert self.block == 0
-                self.block = 2
-            elif c == 'X':
-                self.bdest |= 1
-            elif c == 'O':
-                self.bdest |= 2
-
-
-class FieldData:
-    def __init__(self):
-        self.sx = 1
-        self.sy = 1
-        self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
-        self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
-        self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
-
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
-        self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
-        self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
-        self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
-        cells = d["cells"]
-        for y in range(sy):
-            for x in range(sx):
-                self.cells[y][x].decode(cells[y][x])
-        vfences = d.get("vfences")
-        if vfences:
-            for y in range(min(sy, len(vfences))):
-                for x in range(min(sx - 1, len(vfences[y]))):
-                    self.vfences[y][x] = (vfences[y][x] not in ' 0')
-        hfences = d.get("hfences")
-        if hfences:
-            for y in range(min(sy - 1, len(hfences))):
-                for x in range(min(sx, len(hfences[y]))):
-                    self.hfences[y][x] = (hfences[y][x] not in ' 0')
-
 class Textures:
     def __init__(self, robot_kind, csize):
-        t = get_image("dvigun").convert_alpha()
+        t = get_image("tyagun").convert_alpha()
         self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
-        t = get_image("dvigun_dead").convert_alpha()
+        t = get_image("tyagun_dead").convert_alpha()
         self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
         t = get_image("robot_dest").convert_alpha()
         self.robot_dest = pygame.transform.scale(t, csize)
@@ -101,7 +37,7 @@ class Textures:
         self.vwall = pygame.transform.scale(t, (csize[0] // 10, csize[1] * 4 // 5))
 
 
-class GameDvigun:
+class GameTyagun:
 
     def __init__(self, json_name):
         self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
@@ -170,7 +106,6 @@ class GameDvigun:
         while True:
             pygame.event.pump()
             for ev in pygame.event.get():
-                print(ev.type, ev)
                 if ev.type == pygame.WINDOWSHOWN:
                     pygame.display.flip()
                     continue
@@ -282,7 +217,7 @@ class GameDvigun:
 
         blocks = [0 for i in range(k)]
         for i in range(k):
-            xi, yi = x + dx * (i + 1), y + dy * (i + 1)
+            xi, yi = x - dx * (i + 1), y - dy * (i + 1)
             blocks[i] = self.field.cells[yi][xi].block
             assert blocks[i]
             self.field.cells[yi][xi].block = 0
@@ -301,15 +236,15 @@ class GameDvigun:
             self.screen.blit(scopy, (0, 0))
             dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
             for j in range(k + 1):
-                bx = cx * (x + j * dx) + cx // 5 + dxi
-                by = cy * (y + j * dy) + cy // 5 + dyi
+                bx = cx * (x - j * dx) + cx // 5 + dxi
+                by = cy * (y - j * dy) + cy // 5 + dyi
                 self.screen.blit(ts[j], (bx, by))
             
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
 
         for i in range(k):
-            xi, yi = x + dx * (i + 2), y + dy * (i + 2)
+            xi, yi = x - dx * i, y - dy * i
             self.field.cells[yi][xi].block = blocks[i]
         self.robot.x += dx
         self.robot.y += dy
@@ -347,50 +282,55 @@ class GameDvigun:
         sy = self.field.sy
         x0, y0 = pos
         if not (0 <= x0 < sx):
-            return (False, None)
+            return False
         if not (0 <= y0 < sy):
-            return (False, None)
+            return False
 
         dx, dy = self.direction_vectors[d % 4]
         x1 = x0 + dx
         y1 = y0 + dy
         if not (0 <= x1 < sx):
-            return (False, None)
+            return False
         if not (0 <= y1 < sy):
-            return (False, None)
+            return False
 
         if dx and self.field.vfences[y0][min(x0, x1)]:
-            return (False, None)
+            return False
         if dy and self.field.hfences[min(y0, y1)][x0]:
-            return (False, None)
-        return (True, self.field.cells[y1][x1].block)
+            return False
+        return self.field.cells[y1][x1].block == 0
 
-    def _can_move(self, k):
+    def _can_tow(self):
         x = self.robot.x
         y = self.robot.y
         d = self.robot.dir % 4
         dx, dy = self.direction_vectors[d]
-        for i in range(0, k + 1):
-            ok, block = self._can_pass((x + i * dx, y + i * dy), d)
-            if not ok:
-                return -1
-            if not block:
-                return i
-        return -1
+        for i in range(-1, 1):
+            if not self._can_pass((x + i * dx, y + i * dy), d):
+                return False
+        return self.field.cells[y - dy][x - dx].block != 0
+
+    def _tow(self):
+        if not self.robot_alive:
+            return False
+        if not self._can_tow():
+            self.robot_alive = False
+            return True
+
+        self.move_robot(1)
+        return False
 
     def _path_clear(self):
-        ok, block = self._can_pass((self.robot.x, self.robot.y), self.robot.dir)
-        return ok and not block
+        return self._can_pass((self.robot.x, self.robot.y), self.robot.dir)
 
     def _step_forward(self):
         if not self.robot_alive:
             return False
-        k = self._can_move(2)
-        if k < 0:
+        if not self._path_clear():
             self.robot_alive = False
             return True
 
-        self.move_robot(k)
+        self.move_robot(0)
         return False
 
     def _turn_right(self): 
@@ -409,14 +349,12 @@ class GameDvigun:
         self.robot.dir = d
         return False
 
+    def tow(self):
+        ans = self._tow()
+        self.finish_step(ans, ans)
+
     def path_clear(self):
         ans = self._path_clear()
-        self.finish_step(False, True)
-        return ans
-
-    def can_move(self):
-        k = self._can_move(2)
-        ans = (k >= 0)
         self.finish_step(False, True)
         return ans
 
