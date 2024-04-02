@@ -126,7 +126,9 @@ class GameDvigun:
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
 
-        pygame.init()
+        pygame.display.init()
+        pygame.event.set_blocked(pygame.MOUSEMOTION)
+        pygame.event.set_blocked(pygame.WINDOWMOVED)
         self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
@@ -166,10 +168,16 @@ class GameDvigun:
 
         flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
         while True:
+            pygame.event.pump()
             for ev in pygame.event.get():
+                print(ev.type, ev)
+                if ev.type == pygame.WINDOWSHOWN:
+                    pygame.display.flip()
+                    continue
                 if ev.type == pygame.QUIT:
                     sys.exit("Closed by user ")
                     flag = False
+                    continue
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_TAB:
                         flag = False
@@ -177,10 +185,14 @@ class GameDvigun:
                     elif ev.key == pygame.K_SPACE:
                         flag = False
                         self.game_mode = 2
+                    continue
             if not flag:
                 break
+            pygame.time.wait(10)
+
         if need_raise and not self.robot_alive:
             raise RuntimeError("Robot is dead")
+
 
     def task_complete(self):
         if not self.robot_alive:
