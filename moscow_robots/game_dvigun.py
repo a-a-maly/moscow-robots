@@ -61,14 +61,14 @@ class FieldData:
                 self.cells[y][x].decode(cells[y][x])
         vfences = d.get("vfences")
         if vfences:
-            for y in range(sy):
-                for x in range(sx - 1):
-                    self.vfences[y][x] = vfences[y][x]
+            for y in range(min(sy, len(vfences))):
+                for x in range(min(sx - 1, len(vfences[y]))):
+                    self.vfences[y][x] = (vfences[y][x] not in ' 0')
         hfences = d.get("hfences")
         if hfences:
-            for y in range(sy - 1):
-                for x in range(sx):
-                    self.hfences[y][x] = hfences[y][x]
+            for y in range(min(sy - 1, len(hfences))):
+                for x in range(min(sx, len(hfences[y]))):
+                    self.hfences[y][x] = (hfences[y][x] not in ' 0')
 
 class Textures:
     def __init__(self, robot_kind, csize):

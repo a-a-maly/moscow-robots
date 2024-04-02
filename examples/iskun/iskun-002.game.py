@@ -4,7 +4,7 @@ with mr.GameIskun("iskun-002.json") as  r:
 
     while r.path_clear_left():
         r.step_left()
-    r.step_left()
+    #r.step_left()
     r.step_up()
     while r.path_clear_right():
         r.step_right()
