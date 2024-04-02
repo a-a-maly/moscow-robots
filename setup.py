@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
 	name = "moscow_robots",
-	version = "0.0.3",
+	version = "0.0.4",
 	url = "https://github.com/mvrayko/moscow-robots",
 	author = "Milya Rayko",
 	description = "Moscow Robots library support",

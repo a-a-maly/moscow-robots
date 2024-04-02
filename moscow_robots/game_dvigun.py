@@ -91,9 +91,9 @@ class Textures:
 
         self.blocks = [None]
         t = get_image("block_square").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5)))
+        self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
         t = get_image("block_circle").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5)))
+        self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
 
         t = get_image("wall_hor").convert()
         self.hwall = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] // 10))
@@ -252,8 +252,8 @@ class GameDvigun:
             for x in range(self.field.sx):
                 block = self.field.cells[y][x].block
                 if block:
-                    bx = cx * x + cx // 10
-                    by = cy * y + cy // 10
+                    bx = cx * x + cx * 1 // 5
+                    by = cy * y + cy * 1 // 5
                     self.screen.blit(self.textures.blocks[block], (bx, by))
         pass
                     
@@ -301,8 +301,8 @@ class GameDvigun:
             self.screen.blit(scopy, (0, 0))
             dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
             for j in range(k + 1):
-                bx = cx * (x + j * dx) + cx // 10 + dxi
-                by = cy * (y + j * dy) + cy // 10 + dyi
+                bx = cx * (x + j * dx) + cx // 5 + dxi
+                by = cy * (y + j * dy) + cy // 5 + dyi
                 self.screen.blit(ts[j], (bx, by))
             
             pygame.display.update()
