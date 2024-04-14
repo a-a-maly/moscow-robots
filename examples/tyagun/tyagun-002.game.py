@@ -1,3 +1,4 @@
+#!python3
 import moscow_robots as mr
 
 def prog_A(r):
