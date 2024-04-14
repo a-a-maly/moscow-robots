@@ -5,6 +5,7 @@ from .game_vertun import GameVertun
 from .game_iskun import GameIskun
 from .game_dvigun import GameDvigun
 from .game_tyagun import GameTyagun
+from .game_polzun import GamePolzun
 
 __version__ = "0.0.4"
 __author__ = "Dmitrij Preobrazhenskij, Alexander A. Maly, Milya Rayko"
