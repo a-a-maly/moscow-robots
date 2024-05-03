@@ -380,11 +380,11 @@ class GameTrain:
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
-        d = (4 - self.robot.dir) % 4
+        d = self.robot.dir % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
-        t = pygame.transform.rotate(t, d * 90)
+        t = pygame.transform.rotate(t, -d * 90)
         
         ax = (cx - t.get_width()) // 2
         ay = (cy - t.get_height()) // 2
@@ -467,7 +467,7 @@ class GameTrain:
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
 
-        d = (d + 4 - dd) % 4
+        d = (d + dd) % 4
         self.robot.dir = d
         g0 = self.field.gears[0]
         
@@ -522,6 +522,15 @@ class GameTrain:
     def turn_left(self): 
         ans = self._turn_left()
         self.finish_step(True, ans)
+
+    def has_to_add():
+        ans = self._has_to_add()
+        self.finish_step(False, True)
+        return ans
+
+    def has_to_drop():
+        
+
 
     def drop(self):
         self._drop()
