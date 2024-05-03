@@ -4,6 +4,7 @@ from moscow_robots.data import get_image
 from moscow_robots.game_vertun import RobotData
 import sys
 
+direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
 class CellData:
     def __init__(self):
@@ -40,6 +41,16 @@ class CellData:
                 self.bdest |= 2
 
 
+class GearData:
+    def __init__(self):
+        self.edges = [None, None]
+        self.dirs = []
+
+    def reverse(self):
+        self.edges[0], self.edges[1] = self.edges[1], self.edges[0]
+        self.dirs[:] = [x ^ 2 for x in self.dirs[::-1]]
+
+
 class FieldData:
     def __init__(self):
         self.sx = 1
@@ -48,20 +59,11 @@ class FieldData:
         self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
         self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
         self.gears = []
+        
 
-
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
-        self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
-        self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
-        self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
-        cells = d["cells"]
-        for y in range(sy):
-            for x in range(sx):
-                self.cells[y][x].decode(cells[y][x])
+    def load_fences(self, d):
+        self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
+        self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
         vfences = d.get("vfences")
         if vfences:
             for y in range(min(sy, len(vfences))):
@@ -73,12 +75,122 @@ class FieldData:
                 for x in range(min(sx, len(hfences[y]))):
                     self.hfences[y][x] = (hfences[y][x] not in ' 0')
 
+    def load_gears(self, d, r):
+        sx = self.sx
+        sy = self.sy
+
+        ngears = 0
+        gmap = [[None for x in range(self.sx)] for y in range(self.sy)] 
+        gears = d.get("gears")
+        if gears:
+            ngears = len(gears)
+            for i in range(ngears):
+                gi = gears[i]
+                gdi = GearData()
+                x, y = gi["head"]
+                assert 0 <= x < sx
+                assert 0 <= y < sy
+                assert gmap[y][x] is None 
+                hblock = self.cells[y][x].block
+                assert (hblock > 0) or (x == r.x and y == r.y)
+                gmap[y][x] = i
+                gdi.edges[0] = [x, y]
+                for c in gi["dirs"]:
+                    ci = int(ci)
+                    assert 0 <= ci < 4
+                    assert self._can_pass((x, y), ci)
+                    dx, dy = direction_vectors[ci]
+                    x += dx
+                    y += dy
+                    assert 0 <= x < sx
+                    assert 0 <= y < sy
+                    assert gmap[y][x] is None 
+                    hblock = self.cells[y][x].block
+                    assert (hblock > 0) or (x == r.x and y == r.y)
+                    gmap[y][x] = i
+                    gdi.dirs.append(ci)
+                gdi.edges[1] = [x, y]
+                self.gears.append(gdi)
+
+        for y in range(sy):
+            for x in range(sx):
+                if gmap[y][x] is None:
+                    if (self.cells[y][x].block > 0) or (x == r.x and y == r.y):
+                        gmap[y][x] = ngears
+                        ngears += 1
+                        gdi = GearData()
+                        gdi.edges[0] = [x, y]
+                        gdi.edges[1] = [x, y]
+                        self.gears.append(gdi)
+
+        ri = gmap[r.y][r.x]
+        assert ri is not None
+        # robot's gear should always have number 0
+        self.gears[0], self.gears[ri] = self.gears[ri], self.gears[0]
+        g0 = self.gears[0]
+        
+        if not (r.x == g0.edges[0][0] and r.y == g0.edges[0][1]):
+            assert (r.x == g0.edges[1][0] and r.y == g0.edges[1][1])
+            # robot should always be the head of its gear
+            g0.reverse()
+            # robot should not see its first load
+            assert (len(g0.dirs) == 0) or (r.dir != g0.dirs[0] ^ 2)
+
+
+    def load(self, d, r):
+        self.sx = d["sx"]
+        self.sy = d["sy"]
+        self.cells = [[CellData() for x in range(self.sx)] for i in range(self.sy)]
+        cells = d["cells"]
+        for y in range(self.sy):
+            for x in range(self.sx):
+                self.cells[y][x].decode(cells[y][x])
+
+        assert self.cells[r.y][r.x].block == 0
+
+        self.load_fences(d)
+        self.load_gears(d, r)
+
+    def _can_pass(self, pos, d):
+        sx = self.sx
+        sy = self.sy
+        x0, y0 = pos
+        if not (0 <= x0 < sx):
+            return False
+        if not (0 <= y0 < sy):
+            return False
+        dx, dy = direction_vectors[d % 4]
+        x1 = x0 + dx
+        y1 = y0 + dy
+        if not (0 <= x1 < sx):
+            return False
+        if not (0 <= y1 < sy):
+            return False
+
+        if dx and self.vfences[y0][min(x0, x1)]:
+            return False
+        if dy and self.hfences[min(y0, y1)][x0]:
+            return False
+        return True
+
+    def can_pass(self, pos, d):
+        if not self._can_pass(pos, d):
+            return False
+        x, y = pos
+        dx, dy = direction_vectors[d % 4]
+        return self.cells[y + dy][x + dx].block == 0
+
+
 class Textures:
     def __init__(self, robot_kind, csize):
         t = get_image("train").convert_alpha()
-        self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.robot = pygame.transform.rotate(t, 90)
+
         t = get_image("train_dead").convert_alpha()
-        self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        self.robot_dead = pygame.transform.rotate(t, 90)
+
         t = get_image("robot_dest").convert_alpha()
         self.robot_dest = pygame.transform.scale(t, csize)
 
@@ -105,14 +217,13 @@ class Textures:
 
         t = get_image("scepka").convert_alpha()
         t = pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] // 5))
-        self.hgear = t
-        self.vgear = pygame.transform.rotate(t, 90)
-        
+        self.gear = pygame.transform.rotate(t, 90)
+
 
 class GameTrain:
+    direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
     def __init__(self, json_name):
-        self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
         self.base_name = "".join(json_name.split(".")[:-1])
         print("base_name", self.base_name)
@@ -124,7 +235,7 @@ class GameTrain:
         self.robot_kind = self.robot.kind
 
         self.field = FieldData()
-        self.field.load(self.json_data["field"])
+        self.field.load(self.json_data["field"], self.robot)
         self.fsize = (self.field.sx, self.field.sy)
 
         ssize = (800, 800)
@@ -165,6 +276,7 @@ class GameTrain:
             self.redraw_field()
             self.redraw_blocks()
             self.redraw_robot()
+            self.redraw_gears()
         pygame.display.update()
 
         if need_wait:
@@ -174,7 +286,6 @@ class GameTrain:
         while True:
             pygame.event.pump()
             for ev in pygame.event.get():
-                print(ev.type, ev)
                 if ev.type == pygame.WINDOWSHOWN:
                     pygame.display.flip()
                     continue
@@ -263,7 +374,7 @@ class GameTrain:
                     by = cy * y + ay
                     self.screen.blit(t, (bx, by))
         pass
-                    
+
     def redraw_robot(self):
         cx = self.csize[0]
         cy = self.csize[1]
@@ -281,49 +392,51 @@ class GameTrain:
         by = cy * y + ay
         self.screen.blit(t, (bx, by))
 
-    def move_robot(self, k):  # with k blocks ahead
+    def redraw_gears(self):
         cx = self.csize[0]
         cy = self.csize[1]
-        x = self.robot.x
-        y = self.robot.y
-        d = self.robot.dir % 4
-        dx, dy = self.direction_vectors[d]
+        for g in self.field.gears:
+            x, y = g.edges[0]
+            for d in g.dirs:
+                dx, dy = self.direction_vectors[d]
+                t = pygame.transform.rotate(self.textures.gear, -90 * d)
+                ax = (cx * (1 + dx) - t.get_width()) // 2
+                ay = (cx * (1 + dy) - t.get_height()) // 2
+                self.screen.blit(t, (cx * x + ax, cy * y + ay))
+                x += dx
+                y += dy
 
-        blocks = [0 for i in range(k)]
-        for i in range(k):
-            xi, yi = x + dx * (i + 1), y + dy * (i + 1)
-            blocks[i] = self.field.cells[yi][xi].block
-            assert blocks[i]
-            self.field.cells[yi][xi].block = 0
 
-        ts = []
-        ts.append(pygame.transform.rotate(self.textures.robot, ((4 - d) % 4) * 90))
-        for i in range(k):
-            ts.append(self.textures.blocks[blocks[i]])
+    def move_robot(self):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        rx = self.robot.x
+        ry = self.robot.y
+        rd = self.robot.dir % 4
+        rdx, rdy = direction_vectors[rd]
 
-        self.redraw_field()
-        self.redraw_blocks()
-        scopy = self.screen.copy()
+        g0 = self.field.gears[0]
+        assert (rx == g0.edges[0][0]) and (ry == g0.edges[0][1])
+        self.robot.x += rdx
+        self.robot.y += rdy
+        g0.edges[0][0] = self.robot.x
+        g0.edges[0][1] = self.robot.y
+        d = rd
+        x, y = rx, ry
+        px, py = x, y
+        for i in range(len(g0.dirs)):
+            od = g0.dirs[i]
+            odx, ody = direction_vectors[od]
+            self.field.cells[y][x].block = self.field.cells[y + ody][x + odx].block
+            self.field.cells[y + ody][x + odx].block = 0
+            g0.dirs[i] = d
+            d = od
+            px, py = x, y
+            x, y = x + odx, y + ody
+        self.field.cells[py][px].block = 0
+        g0.edges[1][0] = px
+        g0.edges[1][1] = py
 
-        m = 8
-        for i in range(m + 1):
-            self.screen.blit(scopy, (0, 0))
-            dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
-            for j in range(k + 1):
-                ax = (cx - ts[j].get_width()) // 2
-                ay = (cy - ts[j].get_height()) // 2
-                bx = cx * (x + j * dx) + ax + dxi
-                by = cy * (y + j * dy) + ay + dyi
-                self.screen.blit(ts[j], (bx, by))
-            
-            pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
-
-        for i in range(k):
-            xi, yi = x + dx * (i + 2), y + dy * (i + 2)
-            self.field.cells[yi][xi].block = blocks[i]
-        self.robot.x += dx
-        self.robot.y += dy
 
     def rotate_robot(self, dd):
         cx = self.csize[0]
@@ -336,7 +449,7 @@ class GameTrain:
         by = cy * y
 
         t = self.textures.robot
-        t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
+        t = pygame.transform.rotate(t, -d * 90)
 
         self.redraw_field()
         self.redraw_blocks()
@@ -350,84 +463,51 @@ class GameTrain:
             dbx = (cx - tsize[0]) // 2
             dby = (cy - tsize[1]) // 2
             self.screen.blit(ti, (bx + dbx, by + dby))
+            self.redraw_gears()
             pygame.display.update()
             pygame.time.wait(self.speed // (m + 1))
 
-    def _can_pass(self, pos, d):
-        sx = self.field.sx
-        sy = self.field.sy
-        x0, y0 = pos
-        if not (0 <= x0 < sx):
-            return (False, None)
-        if not (0 <= y0 < sy):
-            return (False, None)
+        d = (d + 4 - dd) % 4
+        self.robot.dir = d
+        g0 = self.field.gears[0]
+        
+        if g0.dirs and (d ^ 2 == g0.dirs[0]):
+            self._drop()
 
-        dx, dy = self.direction_vectors[d % 4]
-        x1 = x0 + dx
-        y1 = y0 + dy
-        if not (0 <= x1 < sx):
-            return (False, None)
-        if not (0 <= y1 < sy):
-            return (False, None)
+    def _drop(self):
+        g0 = self.field.gears[0]
+        if len(g0.dirs) == 0:
+            return
 
-        if dx and self.field.vfences[y0][min(x0, x1)]:
-            return (False, None)
-        if dy and self.field.hfences[min(y0, y1)][x0]:
-            return (False, None)
-        return (True, self.field.cells[y1][x1].block)
 
-    def _can_move(self, k):
-        x = self.robot.x
-        y = self.robot.y
-        d = self.robot.dir % 4
-        dx, dy = self.direction_vectors[d]
-        for i in range(0, k + 1):
-            ok, block = self._can_pass((x + i * dx, y + i * dy), d)
-            if not ok:
-                return -1
-            if not block:
-                return i
-        return -1
 
     def _path_clear(self):
-        ok, block = self._can_pass((self.robot.x, self.robot.y), self.robot.dir)
-        return ok and not block
+        return self.field.can_pass((self.robot.x, self.robot.y), self.robot.dir)
 
     def _step_forward(self):
         if not self.robot_alive:
             return False
-        k = self._can_move(2)
-        if k < 0:
+        if not self._path_clear():
             self.robot_alive = False
             return True
 
-        self.move_robot(k)
-        return False
+        self.move_robot()
+        return True
 
     def _turn_right(self): 
         if not self.robot_alive:
             return False
         self.rotate_robot(1)
-        d = (self.robot.dir + 1) % 4
-        self.robot.dir = d
         return False
 
     def _turn_left(self): 
         if not self.robot_alive:
             return False
         self.rotate_robot(-1)
-        d = (self.robot.dir + 3) % 4
-        self.robot.dir = d
         return False
 
     def path_clear(self):
         ans = self._path_clear()
-        self.finish_step(False, True)
-        return ans
-
-    def can_move(self):
-        k = self._can_move(2)
-        ans = (k >= 0)
         self.finish_step(False, True)
         return ans
 
@@ -437,9 +517,12 @@ class GameTrain:
 
     def turn_right(self): 
         ans = self._turn_right()
-        self.finish_step(ans, ans)
+        self.finish_step(True, ans)
 
     def turn_left(self): 
         ans = self._turn_left()
-        self.finish_step(ans, ans)
+        self.finish_step(True, ans)
 
+    def drop(self):
+        self._drop()
+        self.finish_step(True, True)
