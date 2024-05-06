@@ -4,7 +4,18 @@ from moscow_robots.data import get_image
 from moscow_robots.game_vertun import RobotData
 import sys
 
-direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+_direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+
+def _next_pos(pos, d):
+    x, y = pos
+    dx, dy = _direction_vectors[d % 4]
+    return (x + dx, y + dy)
+
+def _prev_pos(pos, d):
+    x, y = pos
+    dx, dy = _direction_vectors[d % 4]
+    return (x - dx, y - dy)
+
 
 class CellData:
     def __init__(self):
@@ -94,12 +105,12 @@ class FieldData:
                 hblock = self.cells[y][x].block
                 assert (hblock > 0) or (x == r.x and y == r.y)
                 gmap[y][x] = i
-                gdi.edges[0] = [x, y]
+                gdi.edges[0] = (x, y)
                 for c in gi["dirs"]:
                     ci = int(ci)
                     assert 0 <= ci < 4
                     assert self._can_pass((x, y), ci)
-                    dx, dy = direction_vectors[ci]
+                    dx, dy = _direction_vectors[ci]
                     x += dx
                     y += dy
                     assert 0 <= x < sx
@@ -109,7 +120,7 @@ class FieldData:
                     assert (hblock > 0) or (x == r.x and y == r.y)
                     gmap[y][x] = i
                     gdi.dirs.append(ci)
-                gdi.edges[1] = [x, y]
+                gdi.edges[1] = (x, y)
                 self.gears.append(gdi)
 
         for y in range(sy):
@@ -119,8 +130,8 @@ class FieldData:
                         gmap[y][x] = ngears
                         ngears += 1
                         gdi = GearData()
-                        gdi.edges[0] = [x, y]
-                        gdi.edges[1] = [x, y]
+                        gdi.edges[0] = (x, y)
+                        gdi.edges[1] = (x, y)
                         self.gears.append(gdi)
 
         ri = gmap[r.y][r.x]
@@ -135,6 +146,11 @@ class FieldData:
             g0.reverse()
             # robot should not see its first load
             assert (len(g0.dirs) == 0) or (r.dir != g0.dirs[0] ^ 2)
+
+    def dump_gears(self):
+        gs = self.gears
+        for i in range(len(gs)):
+            print(i, gs[i].edges, gs[i].dirs)
 
 
     def load(self, d, r):
@@ -159,7 +175,7 @@ class FieldData:
             return False
         if not (0 <= y0 < sy):
             return False
-        dx, dy = direction_vectors[d % 4]
+        dx, dy = _direction_vectors[d % 4]
         x1 = x0 + dx
         y1 = y0 + dy
         if not (0 <= x1 < sx):
@@ -177,7 +193,7 @@ class FieldData:
         if not self._can_pass(pos, d):
             return False
         x, y = pos
-        dx, dy = direction_vectors[d % 4]
+        dx, dy = _direction_vectors[d % 4]
         return self.cells[y + dy][x + dx].block == 0
 
 
@@ -221,7 +237,6 @@ class Textures:
 
 
 class GameTrain:
-    direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
     def __init__(self, json_name):
 
@@ -237,6 +252,7 @@ class GameTrain:
         self.field = FieldData()
         self.field.load(self.json_data["field"], self.robot)
         self.fsize = (self.field.sx, self.field.sy)
+        #self.field.dump_gears()
 
         ssize = (800, 800)
         csize_x = ssize[0] // max(3, self.fsize[0])
@@ -272,6 +288,7 @@ class GameTrain:
             return True
 
     def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
+        #self.field.dump_gears()
         if need_redraw or not self.robot_alive:
             self.redraw_field()
             self.redraw_blocks()
@@ -398,7 +415,7 @@ class GameTrain:
         for g in self.field.gears:
             x, y = g.edges[0]
             for d in g.dirs:
-                dx, dy = self.direction_vectors[d]
+                dx, dy = _direction_vectors[d]
                 t = pygame.transform.rotate(self.textures.gear, -90 * d)
                 ax = (cx * (1 + dx) - t.get_width()) // 2
                 ay = (cx * (1 + dy) - t.get_height()) // 2
@@ -413,29 +430,28 @@ class GameTrain:
         rx = self.robot.x
         ry = self.robot.y
         rd = self.robot.dir % 4
-        rdx, rdy = direction_vectors[rd]
+        rdx, rdy = _direction_vectors[rd]
 
         g0 = self.field.gears[0]
-        assert (rx == g0.edges[0][0]) and (ry == g0.edges[0][1])
-        self.robot.x += rdx
-        self.robot.y += rdy
-        g0.edges[0][0] = self.robot.x
-        g0.edges[0][1] = self.robot.y
-        d = rd
+        #print((rx, ry), g0.edges[0])
+        assert ((rx, ry) == g0.edges[0])
+        px, py = rx + rdx, ry + rdy
+
+        self.robot.x, self.robot.y = px, py
+        g0.edges[0] = (px, py)
+        d = rd ^ 2
         x, y = rx, ry
-        px, py = x, y
         for i in range(len(g0.dirs)):
             od = g0.dirs[i]
-            odx, ody = direction_vectors[od]
-            self.field.cells[y][x].block = self.field.cells[y + ody][x + odx].block
-            self.field.cells[y + ody][x + odx].block = 0
+            ox, oy = _next_pos((x, y), od)
+            self.field.cells[y][x].block = self.field.cells[oy][ox].block
+            #self.field.cells[oy][ox].block = 0
             g0.dirs[i] = d
             d = od
             px, py = x, y
-            x, y = x + odx, y + ody
-        self.field.cells[py][px].block = 0
-        g0.edges[1][0] = px
-        g0.edges[1][1] = py
+            x, y = ox, oy
+        self.field.cells[y][x].block = 0
+        g0.edges[1] = (px, py)
 
 
     def rotate_robot(self, dd):
@@ -472,13 +488,110 @@ class GameTrain:
         g0 = self.field.gears[0]
         
         if g0.dirs and (d ^ 2 == g0.dirs[0]):
-            self._drop()
+            self._drop_tail()
 
-    def _drop(self):
+    def _has_to_drop(self):
         g0 = self.field.gears[0]
-        if len(g0.dirs) == 0:
-            return
+        return len(g0.dirs) > 0
 
+    def _drop_one(self):
+        if not self.robot_alive:
+            return False
+        g0 = self.field.gears[0]
+        l0 = len(g0.dirs)
+        if l0 == 0:
+            self.robot_alive = False
+            return True
+
+        g1 = GearData()
+        g1.edges[0] = g0.edges[1]
+        g1.edges[1] = g0.edges[1]
+        g0.edges[1] = _prev_pos(g0.edges[1], g0.dirs[-1])
+        g0.dirs.pop()
+        self.field.gears.append(g1)
+
+        return True
+
+    def _drop_all(self):
+        if not self.robot_alive:
+            return False
+        while self._has_to_drop():
+            self._drop_one()
+        return True
+
+    def _drop_tail(self):
+        if not self.robot_alive:
+            return False
+        g0 = self.field.gears[0]
+        l0 = len(g0.dirs)
+        if l0 == 0:
+            return False
+
+        g1 = GearData()
+        g1.edges[0] = _next_pos(g0.edges[0], g0.dirs[0])
+        g1.edges[1] = g0.edges[1]
+        g1.dirs[:] = g0.dirs[1:]
+        g0.edges[1] = g0.edges[0]
+        g0.dirs.clear()
+        self.field.gears.append(g1)
+
+        return True
+
+    def _has_to_add(self):
+        gs = self.field.gears
+        g0 = gs[0]
+        l0 = len(g0.dirs)
+        d = (self.robot.dir % 4) ^ 2
+        (x, y) = g0.edges[1]
+        if l0 > 0:
+            d = g0.dirs[-1]
+        #print(l0, (x, y), d)
+
+        for dd in [0, 1, -1]:
+            d1 = (d + dd) % 4
+            if not self.field._can_pass((x, y), d1):
+                continue
+            (x1, y1) = _next_pos((x, y), d1)
+            #print(dd, d1, (x1, y1))
+
+            for i in range(1, len(gs)):
+                #print(i)
+                gi = self.field.gears[i]
+                for k in range(2):
+                    if gi.edges[k] == (x1, y1):
+                        return (i, d1, k)
+
+        return (0, 0, 0)
+
+    def _add_one(self):
+        if not self.robot_alive:
+            return False
+        h, dh, eh = self._has_to_add()
+        #print(h, dh, eh)
+        if h == 0:
+            self.robot_alive = False
+            return True
+        gs = self.field.gears
+        g0 = gs[0]
+        g1 = gs[h]
+        if eh:
+            g1.reverse()
+        assert _next_pos(g0.edges[1], dh) == g1.edges[0] 
+        g0.edges[1] = g1.edges[1]
+        g0.dirs.append(dh)
+        g0.dirs.extend(g1.dirs)
+        gs[h], gs[-1] = gs[-1], gs[h]
+        gs.pop()
+        return True
+
+    def _add_all(self):
+        if not self.robot_alive:
+            return False
+        res = False
+        while self._has_to_add()[0]:
+            self._add_one()
+            res = True
+        return res
 
 
     def _path_clear(self):
@@ -488,6 +601,19 @@ class GameTrain:
         if not self.robot_alive:
             return False
         if not self._path_clear():
+            self.robot_alive = False
+            return True
+        self._drop_tail()
+        self.move_robot()
+        return True
+
+    def _tow(self):
+        if not self.robot_alive:
+            return False
+        if not self._path_clear():
+            self.robot_alive = False
+            return True
+        if not self._has_to_drop():
             self.robot_alive = False
             return True
 
@@ -511,6 +637,10 @@ class GameTrain:
         self.finish_step(False, True)
         return ans
 
+    def tow(self):
+        ans = self._tow()
+        self.finish_step(ans, ans)
+
     def step_forward(self):
         ans = self._step_forward()
         self.finish_step(ans, ans)
@@ -523,15 +653,29 @@ class GameTrain:
         ans = self._turn_left()
         self.finish_step(True, ans)
 
+    def has_to_drop():
+        ans = self._has_to_drop()
+        self.finish_step(False, True)
+        return ans
+
+    def drop_one(self):
+        self._drop_one()
+        self.finish_step(True, True)
+
+    def drop_all(self):
+        self._drop_all()
+        self.finish_step(True, True)
+
     def has_to_add():
         ans = self._has_to_add()
         self.finish_step(False, True)
         return ans
 
-    def has_to_drop():
-        
-
-
-    def drop(self):
-        self._drop()
+    def add_one(self):
+        self._add_one()
         self.finish_step(True, True)
+
+    def add_all(self):
+        self._add_all()
+        self.finish_step(True, True)
+
