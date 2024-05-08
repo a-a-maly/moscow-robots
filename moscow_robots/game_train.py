@@ -61,6 +61,12 @@ class GearData:
         self.edges[0], self.edges[1] = self.edges[1], self.edges[0]
         self.dirs[:] = [x ^ 2 for x in self.dirs[::-1]]
 
+    def export(self):
+        res = dict()
+        dict["edges"] = self.edges[:]
+        dict["dirs"] = self.dirs[:]
+        return res
+
 
 class FieldData:
     def __init__(self):
@@ -70,7 +76,7 @@ class FieldData:
         self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
         self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
         self.gears = []
-        
+
 
     def load_fences(self, d):
         self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
@@ -166,6 +172,11 @@ class FieldData:
 
         self.load_fences(d)
         self.load_gears(d, r)
+
+    def export(self):
+        
+
+
 
     def _can_pass(self, pos, d):
         sx = self.sx
