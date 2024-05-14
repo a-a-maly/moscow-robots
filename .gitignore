@@ -1,6 +1,7 @@
 .DS_Store
 .*.swp
 *.final.png
+*.final.json
 *_screen.png
 *_final_data.json
 
