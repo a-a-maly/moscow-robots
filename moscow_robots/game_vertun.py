@@ -19,6 +19,17 @@ class RobotData:
         self.dir = d["dir"]
         self.fpos = d.get("fpos")
 
+    def export(self):
+        res = dict()
+        res["kind"] = self.kind
+        res["x"] = self.x
+        res["y"] = self.y
+        res["dir"] = self.dir
+        if self.fpos is not None:
+            res["fpos"] = [self.fpos[0], self.fpos[1]]
+        return res
+
+
 class CellData:
     def __init__(self):
         self.broken = False

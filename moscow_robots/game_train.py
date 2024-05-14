@@ -63,8 +63,8 @@ class GearData:
 
     def export(self):
         res = dict()
-        dict["edges"] = self.edges[:]
-        dict["dirs"] = self.dirs[:]
+        res["edges"] = self.edges[:]
+        res["dirs"] = self.dirs[:]
         return res
 
 
@@ -151,7 +151,7 @@ class FieldData:
             # robot should always be the head of its gear
             g0.reverse()
             # robot should not see its first load
-            assert (len(g0.dirs) == 0) or (r.dir != g0.dirs[0] ^ 2)
+            assert (len(g0.dirs) == 0) or (r.dir != g0.dirs[0])
 
     def dump_gears(self):
         gs = self.gears
@@ -173,10 +173,38 @@ class FieldData:
         self.load_fences(d)
         self.load_gears(d, r)
 
-    def export(self):
-        pass
-        
+    def export_cells(self):
+        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
+        return cs
 
+    def export_fences(self):
+        hfs = ["".join([" -"[self.hfences[y][x]] for x in range(self.sx)]) for y in range(self.sy - 1)]
+        vfs = ["".join([" |"[self.vfences[y][x]] for x in range(self.sx - 1)]) for y in range(self.sy)]
+        return hfs, vfs
+
+    def export_gears(self):
+        res = list()
+        for g in self.gears:
+            if g.dirs:
+                res.append(g.export())
+        return res
+
+    def export(self):
+        res = dict()
+        res["sx"] = self.sx
+        res["sy"] = self.sy
+        cs = self.export_cells()
+        if cs:
+            res["cells"] = cs
+        hfs, vfs = self.export_fences()
+        if hfs:
+            res["hfences"] = hfs
+        if vfs:
+            res["vfences"] = vfs
+        gs = self.export_gears()
+        if gs:
+            res["gears"] = gs
+        return res
 
 
     def _can_pass(self, pos, d):
@@ -283,6 +311,20 @@ class GameTrain:
         self.game_mode = 0
         self.robot_alive = True
 
+    def export(self):
+        res = dict()
+        res["alive"] = self.robot_alive
+        res["complete"] = self.task_complete()
+        res["robot"] = self.robot.export()
+        res["field"] = self.field.export()
+        return res
+
+    def store_state(self, fname = None):
+        state = self.export()
+        if fname is None:
+            fname = self.base_name + ".final.json"
+        with open(fname, "w") as file:
+            json.dump(state, file, indent='\t')
 
     def __enter__(self):
         self.robot_alive = True
@@ -292,6 +334,7 @@ class GameTrain:
 
     def __exit__(self, t, v, tb):
         pygame.image.save(self.screen, self.base_name + ".final.png")
+        self.store_state(self.base_name + ".final.json")
         ok = self.task_complete()
         print("ok:", ok)
         self.game_mode = 2 # step by step
