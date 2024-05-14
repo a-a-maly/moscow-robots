@@ -174,6 +174,7 @@ class FieldData:
         self.load_gears(d, r)
 
     def export(self):
+        pass
         
 
 
@@ -310,7 +311,7 @@ class GameTrain:
         if need_wait:
             pygame.time.wait(self.speed)
 
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
+        flag = (self.game_mode == 2)
         while True:
             pygame.event.pump()
             for ev in pygame.event.get():
@@ -497,8 +498,7 @@ class GameTrain:
         d = (d + dd) % 4
         self.robot.dir = d
         g0 = self.field.gears[0]
-        
-        if g0.dirs and (d ^ 2 == g0.dirs[0]):
+        if g0.dirs and (d == g0.dirs[0]):
             self._drop_tail()
 
     def _has_to_drop(self):
@@ -558,7 +558,7 @@ class GameTrain:
             d = g0.dirs[-1]
         #print(l0, (x, y), d)
 
-        for dd in [0, 1, -1]:
+        for dd in [0, -1, 1]:
             d1 = (d + dd) % 4
             if not self.field._can_pass((x, y), d1):
                 continue
