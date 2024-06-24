@@ -73,7 +73,6 @@ class GameRobot:
         self.game_speed = 100
         self.game_mode = 0
         self.robot_alive = True
-        self.background = None
 
 
     def __enter__(self):
