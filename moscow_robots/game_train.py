@@ -343,7 +343,6 @@ class GameTrain:
             return True
 
     def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        #self.field.dump_gears()
         if need_redraw or not self.robot_alive:
             self.redraw_field()
             self.redraw_blocks()
