@@ -171,8 +171,6 @@ class GameVertun(GameRobot):
             by = fpos[1] * cy
             self.screen.blit(t, (bx, by))
 
-        self.background = self.screen.copy()
-
     def redraw_robot(self):
         cx = self.csize[0]
         cy = self.csize[1]
