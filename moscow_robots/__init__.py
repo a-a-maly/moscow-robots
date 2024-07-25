@@ -7,7 +7,7 @@ from .game_iskun import GameIskun
 #from .game_dvigun import GameDvigun
 #from .game_tyagun import GameTyagun
 from .game_polzun import GamePolzun
-#from .game_train import GameTrain
+from .game_train import GameTrain
 
 __version__ = "0.0.4"
 __author__ = "Dmitrij Preobrazhenskij, Alexander A. Maly, Milya Rayko"

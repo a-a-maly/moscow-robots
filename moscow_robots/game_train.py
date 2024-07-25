@@ -1,20 +1,6 @@
 import pygame
-import json
 from moscow_robots.data import get_image
-from moscow_robots.game_vertun import RobotData
-import sys
-
-_direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-
-def _next_pos(pos, d):
-    x, y = pos
-    dx, dy = _direction_vectors[d % 4]
-    return (x + dx, y + dy)
-
-def _prev_pos(pos, d):
-    x, y = pos
-    dx, dy = _direction_vectors[d % 4]
-    return (x - dx, y - dy)
+from moscow_robots.game_robot import GameRobot
 
 
 class CellData:
@@ -116,7 +102,7 @@ class FieldData:
                     ci = int(ci)
                     assert 0 <= ci < 4
                     assert self._can_pass((x, y), ci)
-                    dx, dy = _direction_vectors[ci]
+                    dx, dy = GameRobot.direction_vectors[ci]
                     x += dx
                     y += dy
                     assert 0 <= x < sx
@@ -215,7 +201,7 @@ class FieldData:
             return False
         if not (0 <= y0 < sy):
             return False
-        dx, dy = _direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         x1 = x0 + dx
         y1 = y0 + dy
         if not (0 <= x1 < sx):
@@ -233,7 +219,7 @@ class FieldData:
         if not self._can_pass(pos, d):
             return False
         x, y = pos
-        dx, dy = _direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         return self.cells[y + dy][x + dx].block == 0
 
 
@@ -276,108 +262,22 @@ class Textures:
         self.gear = pygame.transform.rotate(t, 90)
 
 
-class GameTrain:
+class GameTrain(GameRobot):
 
     def __init__(self, json_name):
-
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
+        GameRobot.__init__(self, json_name)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"], self.robot)
-        self.fsize = (self.field.sx, self.field.sy)
-        #self.field.dump_gears()
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-        self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
 
-    def export(self):
-        res = dict()
-        res["alive"] = self.robot_alive
-        res["complete"] = self.task_complete()
-        res["robot"] = self.robot.export()
-        res["field"] = self.field.export()
-        return res
-
-    def store_state(self, fname = None):
-        state = self.export()
-        if fname is None:
-            fname = self.base_name + ".final.json"
-        with open(fname, "w") as file:
-            json.dump(state, file, indent='\t')
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        self.store_state(self.base_name + ".final.json")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        if not self.robot_alive:
-            return True
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_blocks()
-            self.redraw_robot()
-            self.redraw_gears()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = (self.game_mode == 2)
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_blocks()
+        self.redraw_robot()
+        self.redraw_gears()
 
 
     def task_complete(self):
@@ -469,7 +369,7 @@ class GameTrain:
         for g in self.field.gears:
             x, y = g.edges[0]
             for d in g.dirs:
-                dx, dy = _direction_vectors[d]
+                dx, dy = self.direction_vectors[d]
                 t = pygame.transform.rotate(self.textures.gear, -90 * d)
                 ax = (cx * (1 + dx) - t.get_width()) // 2
                 ay = (cx * (1 + dy) - t.get_height()) // 2
@@ -484,7 +384,7 @@ class GameTrain:
         rx = self.robot.x
         ry = self.robot.y
         rd = self.robot.dir % 4
-        rdx, rdy = _direction_vectors[rd]
+        rdx, rdy = self.direction_vectors[rd]
 
         g0 = self.field.gears[0]
         #print((rx, ry), g0.edges[0])
@@ -497,7 +397,7 @@ class GameTrain:
         x, y = rx, ry
         for i in range(len(g0.dirs)):
             od = g0.dirs[i]
-            ox, oy = _next_pos((x, y), od)
+            ox, oy = GameRobot.next_pos((x, y), od)
             self.field.cells[y][x].block = self.field.cells[oy][ox].block
             #self.field.cells[oy][ox].block = 0
             g0.dirs[i] = d
@@ -535,7 +435,7 @@ class GameTrain:
             self.screen.blit(ti, (bx + dbx, by + dby))
             self.redraw_gears()
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
         d = (d + dd) % 4
         self.robot.dir = d
@@ -559,7 +459,7 @@ class GameTrain:
         g1 = GearData()
         g1.edges[0] = g0.edges[1]
         g1.edges[1] = g0.edges[1]
-        g0.edges[1] = _prev_pos(g0.edges[1], g0.dirs[-1])
+        g0.edges[1] = GameRobot.prev_pos(g0.edges[1], g0.dirs[-1])
         g0.dirs.pop()
         self.field.gears.append(g1)
 
@@ -581,7 +481,7 @@ class GameTrain:
             return False
 
         g1 = GearData()
-        g1.edges[0] = _next_pos(g0.edges[0], g0.dirs[0])
+        g1.edges[0] = GameRobot.next_pos(g0.edges[0], g0.dirs[0])
         g1.edges[1] = g0.edges[1]
         g1.dirs[:] = g0.dirs[1:]
         g0.edges[1] = g0.edges[0]
@@ -604,7 +504,7 @@ class GameTrain:
             d1 = (d + dd) % 4
             if not self.field._can_pass((x, y), d1):
                 continue
-            (x1, y1) = _next_pos((x, y), d1)
+            (x1, y1) = GameRobot.next_pos((x, y), d1)
             #print(dd, d1, (x1, y1))
 
             for i in range(1, len(gs)):
@@ -629,7 +529,7 @@ class GameTrain:
         g1 = gs[h]
         if eh:
             g1.reverse()
-        assert _next_pos(g0.edges[1], dh) == g1.edges[0] 
+        assert GameRobot.next_pos(g0.edges[1], dh) == g1.edges[0] 
         g0.edges[1] = g1.edges[1]
         g0.dirs.append(dh)
         g0.dirs.extend(g1.dirs)

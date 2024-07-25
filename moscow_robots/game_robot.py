@@ -32,12 +32,12 @@ class GameRobot:
 
     def next_pos(pos, d):
         x, y = pos
-        dx, dy = direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         return (x + dx, y + dy)
 
     def prev_pos(pos, d):
         x, y = pos
-        dx, dy = direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         return (x - dx, y - dy)
 
 
@@ -52,6 +52,7 @@ class GameRobot:
         self.robot_kind = self.robot.kind
 
         fdata = self.json_data["field"]
+        self.field = None
         self.fsize = (fdata["sx"], fdata["sy"])
 
         ssize = (800, 800)
@@ -84,12 +85,30 @@ class GameRobot:
 
     def __exit__(self, t, v, tb):
         pygame.image.save(self.screen, self.base_name + ".final.png")
+        self.store_state(self.base_name + ".final.json")
         ok = self.task_complete()
         print("ok:", ok)
         self.game_mode = 2 # step by step
         self.finish_step(True, False, False)
         if not self.robot_alive:
             return True
+
+    def export_state(self):
+        res = dict()
+        res["alive"] = self.robot_alive
+        res["complete"] = self.task_complete()
+        res["robot"] = self.robot.export()
+        if self.field is not None:
+            if self.field.export is not None:
+                res["field"] = self.field.export()
+        return res
+
+    def store_state(self, fname = None):
+        state = self.export_state()
+        if fname is None:
+            fname = self.base_name + ".final.json"
+        with open(fname, "w") as file:
+            json.dump(state, file, indent='\t')
 
 
     def task_complete(self): # to be overriden
