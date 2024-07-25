@@ -64,6 +64,19 @@ class FieldData:
                 for x in range(min(sx, len(hfences[y]))):
                     self.hfences[y][x] = (hfences[y][x] not in ' 0')
 
+    def export(self):
+        res = dict()
+        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
+        hfs = ["".join([" -"[self.hfences[y][x]] for x in range(self.sx)]) for y in range(self.sy - 1)]
+        vfs = ["".join([" |"[self.vfences[y][x]] for x in range(self.sx - 1)]) for y in range(self.sy)]
+        res["sx"] = self.sx
+        res["sy"] = self.sy
+        res["cells"] = cs
+        res["hfences"] = hfs
+        res["vfences"] = vfs
+        return res
+
+
 class Textures:
     def __init__(self, robot_kind, csize):
         t = get_image("vertun").convert_alpha()
