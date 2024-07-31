@@ -1,11 +1,9 @@
 import pygame
-import json
 from moscow_robots.data import get_image
-from moscow_robots.game_vertun import RobotData
-import sys
+from moscow_robots.game_robot import GameRobot
 
 
-class CellData:
+class DvigunCellData:
     def __init__(self):
         self.block = 0
         self.bdest = 0
@@ -39,26 +37,31 @@ class CellData:
                 self.bdest |= 2
 
 
-class FieldData:
+class DvigunFieldData:
     def __init__(self):
         self.sx = 1
         self.sy = 1
-        self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
+        self.cells = [[DvigunCellData() for x in range(self.sx)] for y in range(self.sy)]
         self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
         self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
 
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
-        self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
-        self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
-        self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
+    def load_cells(self, d):
+        sx, sy = self.sx, self.sy
+        self.cells = [[DvigunCellData() for x in range(sx)] for i in range(sy)]
         cells = d["cells"]
         for y in range(sy):
             for x in range(sx):
                 self.cells[y][x].decode(cells[y][x])
+
+    def export_cells(self):
+        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
+        return cs
+
+
+    def load_fences(self, d):
+        sx, sy = self.sx, self.sy
+        self.hfences = [[0 for x in range(sx)] for y in range(sy - 1)]
+        self.vfences = [[0 for x in range(sx - 1)] for y in range(sy)]
         vfences = d.get("vfences")
         if vfences:
             for y in range(min(sy, len(vfences))):
@@ -70,7 +73,33 @@ class FieldData:
                 for x in range(min(sx, len(hfences[y]))):
                     self.hfences[y][x] = (hfences[y][x] not in ' 0')
 
-class Textures:
+    def export_fences(self):
+        sx, sy = self.sx, self.sy
+        hfs = ["".join([" -"[self.hfences[y][x]] for x in range(sx)]) for y in range(sy - 1)]
+        vfs = ["".join([" |"[self.vfences[y][x]] for x in range(sx - 1)]) for y in range(sy)]
+        return hfs, vfs
+
+    def load(self, d):
+        self.sx = d["sx"]
+        self.sy = d["sy"]
+        self.load_cells(d)
+        self.load_fences(d)
+
+    def export(self):
+        res = dict()
+        res["sx"] = self.sx
+        res["sy"] = self.sy
+        cs = self.export_cells()
+        if cs:
+            res["cells"] = cs
+        hfs, vfs = self.export_fences()
+        if hfs:
+            res["hfences"] = hfs
+        if vfs:
+            res["vfences"] = vfs
+        return res
+
+class DvigunTextures:
     def __init__(self, robot_kind, csize):
         t = get_image("dvigun").convert_alpha()
         self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
@@ -101,98 +130,20 @@ class Textures:
         self.vwall = pygame.transform.scale(t, (csize[0] // 10, csize[1] * 4 // 5))
 
 
-class GameDvigun:
+class GameDvigun(GameRobot):
 
     def __init__(self, json_name):
-        self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+        GameRobot.__init__(self, json_name)
 
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
-
-        self.field = FieldData()
+        self.field = DvigunFieldData()
         self.field.load(self.json_data["field"])
-        self.fsize = (self.field.sx, self.field.sy)
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
+        self.textures = DvigunTextures(self.robot_kind, self.csize)
 
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-        self.screen = pygame.display.set_mode(self.ssize)
-        self.textures = Textures(self.robot_kind, self.csize)
-
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
-
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        #print("t", t)
-        #print("v", v)
-        #print("tb", tb)
-        if not self.robot_alive:
-            #print(type(v), len(v))
-            return True
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_blocks()
-            self.redraw_robot()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                print(ev.type, ev)
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
-
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_blocks()
+        self.redraw_robot()
 
     def task_complete(self):
         if not self.robot_alive:
@@ -313,7 +264,7 @@ class GameDvigun:
                 self.screen.blit(ts[j], (bx, by))
             
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
         for i in range(k):
             xi, yi = x + dx * (i + 2), y + dy * (i + 2)
@@ -347,7 +298,7 @@ class GameDvigun:
             dby = (cy - tsize[1]) // 2
             self.screen.blit(ti, (bx + dbx, by + dby))
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
     def _can_pass(self, pos, d):
         sx = self.field.sx

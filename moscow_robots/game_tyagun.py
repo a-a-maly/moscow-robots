@@ -1,133 +1,34 @@
 import pygame
-import json
 from moscow_robots.data import get_image
-from moscow_robots.game_vertun import RobotData
-from moscow_robots.game_dvigun import CellData, FieldData
-import sys
+from moscow_robots.game_robot import GameRobot
+from moscow_robots.game_dvigun import DvigunCellData as CellData
+from moscow_robots.game_dvigun import DvigunFieldData as FieldData
+from moscow_robots.game_dvigun import DvigunTextures
 
 
-class Textures:
+class Textures(DvigunTextures):
     def __init__(self, robot_kind, csize):
+        DvigunTextures.__init__(self, robot_kind, csize)
         t = get_image("tyagun").convert_alpha()
         self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
         t = get_image("tyagun_dead").convert_alpha()
         self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
-        t = get_image("robot_dest").convert_alpha()
-        self.robot_dest = pygame.transform.scale(t, csize)
-
-        self.fields = []
-        t = get_image("field_normal_other").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_square_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_circle_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_any_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-
-        self.blocks = [None]
-        t = get_image("block_square").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
-        t = get_image("block_circle").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 2 // 3, csize[1] * 2 // 3)))
-
-        t = get_image("wall_hor").convert()
-        self.hwall = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] // 10))
-        t = get_image("wall_vert").convert()
-        self.vwall = pygame.transform.scale(t, (csize[0] // 10, csize[1] * 4 // 5))
 
 
-class GameTyagun:
+class GameTyagun(GameRobot):
 
     def __init__(self, json_name):
-        self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
+        GameRobot.__init__(self, json_name)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"])
-        self.fsize = (self.field.sx, self.field.sy)
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-        self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
-
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        #print("t", t)
-        #print("v", v)
-        #print("tb", tb)
-        if not self.robot_alive:
-            #print(type(v), len(v))
-            return True
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_blocks()
-            self.redraw_robot()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
-
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_blocks()
+        self.redraw_robot()
 
     def task_complete(self):
         if not self.robot_alive:
@@ -248,7 +149,7 @@ class GameTyagun:
                 self.screen.blit(ts[j], (bx, by))
             
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
         for i in range(k):
             xi, yi = x - dx * i, y - dy * i
@@ -282,7 +183,7 @@ class GameTyagun:
             dby = (cy - tsize[1]) // 2
             self.screen.blit(ti, (bx + dbx, by + dby))
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
     def _can_pass(self, pos, d):
         sx = self.field.sx
