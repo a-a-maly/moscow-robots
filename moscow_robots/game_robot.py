@@ -71,7 +71,7 @@ class GameRobot:
 
         self.screen = pygame.display.set_mode(self.ssize)
 
-        self.game_speed = 100
+        self.game_speed = 250
         self.game_mode = 0
         self.robot_alive = True
 
@@ -139,11 +139,31 @@ class GameRobot:
                     continue
                 if ev.type == pygame.KEYDOWN:
                     if ev.key == pygame.K_TAB:
-                        flag = False
                         self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
                         flag = False
+                    elif ev.key == pygame.K_SPACE:
                         self.game_mode = 2
+                        flag = False
+                    elif ev.key == pygame.K_0:
+                        self.game_speed = 50
+                    elif ev.key == pygame.K_1:
+                        self.game_speed = 150
+                    elif ev.key == pygame.K_2:
+                        self.game_speed = 250
+                    elif ev.key == pygame.K_3:
+                        self.game_speed = 350
+                    elif ev.key == pygame.K_4:
+                        self.game_speed = 450
+                    elif ev.key == pygame.K_5:
+                        self.game_speed = 550
+                    elif ev.key == pygame.K_6:
+                        self.game_speed = 650
+                    elif ev.key == pygame.K_7:
+                        self.game_speed = 750
+                    elif ev.key == pygame.K_8:
+                        self.game_speed = 850
+                    elif ev.key == pygame.K_9:
+                        self.game_speed = 950
                     continue
 
             if not flag:
