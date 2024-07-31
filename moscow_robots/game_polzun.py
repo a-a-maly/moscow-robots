@@ -25,16 +25,34 @@ class FieldData:
         self.sy = 1
         self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
 
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
+    def load_cells(self, d):
+        sx = self.sx
+        sy = self.sy
         self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
         cells = d["cells"]
         for y in range(sy):
             for x in range(sx):
                 self.cells[y][x].decode(cells[y][x])
+
+
+    def export_cells(self):
+        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
+        return cs
+
+    def load(self, d):
+        self.sx = d["sx"]
+        self.sy = d["sy"]
+        self.load_cells(d)
+
+    def export(self):
+        res = dict()
+        res["sx"] = self.sx
+        res["sy"] = self.sy
+        cs = self.export_cells()
+        if cs:
+            res["cells"] = cs
+        return res
+
 
 class Textures:
 
