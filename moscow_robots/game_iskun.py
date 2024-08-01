@@ -1,4 +1,4 @@
-import pygame
+import pygame, pygame.freetype
 from moscow_robots.data import get_image
 from moscow_robots.game_robot import GameRobot
 from moscow_robots.game_vertun import FieldData
@@ -106,6 +106,23 @@ class GameIskun(GameRobot):
             by = fpos[1] * cy
             self.screen.blit(t, (bx, by))
 
+    def draw_temp(self):
+        if not self.robot_alive:
+            return
+        x = self.robot.x
+        y = self.robot.y
+        txt = str(self.field.cells[y][x].t)
+        if len(txt) > 4:
+            txt = "####"
+        cx = self.csize[0]
+        cy = self.csize[1]
+        ch = cy // 8
+        font = pygame.freetype.SysFont(None, ch)
+        r = font.get_rect(txt)
+        
+        bx = cx * x + (cx - r.width) // 2
+        by = cy * y + (cy - r.height) // 2
+        font.render_to(self.screen, (bx, by), txt, pygame.Color('purple'))
 
     def redraw_robot(self):
         cx = self.csize[0]
@@ -121,6 +138,7 @@ class GameIskun(GameRobot):
         bx = cx * x + cx // 10
         by = cy * y + cy // 10
         self.screen.blit(t, (bx, by))
+        self.draw_temp()
 
     def move_robot(self):
         cx = self.csize[0]
@@ -129,7 +147,6 @@ class GameIskun(GameRobot):
         y = self.robot.y
         d = self.robot.dir % 4
         dx, dy = self.direction_vectors[d]
-        dx, dy = dx * cx, dy * cy
 
         t = self.textures.robot
         t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
@@ -138,14 +155,21 @@ class GameIskun(GameRobot):
         scopy = self.screen.copy()
 
         m = 8
-        for i in range(m + 1):
+        for i in range(1, m + 1):
             self.screen.blit(scopy, (0, 0))
-            dxi, dyi = dx * i // m, dy * i // m
+            dxi, dyi = dx * cx * i // m, dy * cy * i // m
             bx = cx * x + cx // 10 + dxi
             by = cy * y + cy // 10 + dyi
             self.screen.blit(t, (bx, by))
             pygame.display.update()
-            pygame.time.wait(self.game_speed // (m + 1))
+            if i < m:
+                pygame.time.wait(self.game_speed // m)
+
+        self.robot.x += dx
+        self.robot.y += dy
+        self.draw_temp()
+        pygame.display.update()
+        pygame.time.wait(self.game_speed // m)
 
 
     def _fix_cell(self):
@@ -182,10 +206,6 @@ class GameIskun(GameRobot):
             self.robot_alive = False
             return True
         self.move_robot()
-        d = self.robot.dir % 4
-        dx, dy = self.direction_vectors[d]
-        self.robot.x += dx
-        self.robot.y += dy
         return False
 
     def get_temp(self):

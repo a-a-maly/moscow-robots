@@ -65,6 +65,7 @@ class GameRobot:
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * fsize_x, self.csize[1] * fsize_y)    
 
+        pygame.freetype.init()
         pygame.display.init()
         pygame.event.set_blocked(pygame.MOUSEMOTION)
         pygame.event.set_blocked(pygame.WINDOWMOVED)
