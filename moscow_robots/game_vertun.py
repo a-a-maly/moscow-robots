@@ -28,7 +28,7 @@ class CellData:
                 self.broken = True
             elif c == 'p':
                 self.painted = True
-            elif c == ' t':
+            elif c == 't':
                 self.t = int(s[i+1:].strip())
                 break;
 
