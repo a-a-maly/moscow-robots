@@ -114,7 +114,7 @@ def dump_program(prog):
                 print('_', end = ' ')
         print()
 
-
+pygame.event.set_blocked(pygame.MOUSEMOTION)
 flag_dirty = True
 while True:
     if flag_dirty:
@@ -122,7 +122,6 @@ while True:
         redraw()
         pygame.display.flip()
 
-    pygame.time.wait(10)
     ev = pygame.event.wait()
 
     if ev.type == pygame.WINDOWSHOWN:
