@@ -1,9 +1,9 @@
 import pygame
 
-csize = 64
-hwidth = 6
-fwidth = 12
-fheight = 12
+csize = 48
+hwidth = 8
+fwidth = 16
+fheight = 16
 
 cmds = []
 
@@ -31,7 +31,7 @@ for line in cmds:
     cmdstl = []
     for cmd in line:
         t = pygame.image.load(cmd[1] + ".png").convert_alpha()
-        t = pygame.transform.scale(t, (csize * 4 // 5, csize * 4 // 5))
+        t = pygame.transform.scale(t, (csize * 7 // 8, csize * 7 // 8))
         cmdstl.append(t)
     cmdst.append(cmdstl)
 

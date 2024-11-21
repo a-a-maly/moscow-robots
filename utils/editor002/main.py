@@ -144,7 +144,29 @@ class IconsLoader:
 
     
 class PEditor:
-    pass
+
+    def __init__:
+        self.csize = 48
+        self.mwidth = 8
+        self.pwidth = 8
+        self.fheight = 16
+
+        pygame.display.init()
+        screen_resolution = (self.mwidth + self.pwidth) * csize, self.fheight * csize)
+        screen = pygame.display.set_mode(screen_resolution)
+
+        t = pygame.image.load("rblock.png").convert_alpha()
+        self.iframe = pygame.transform.scale(t, (csize, csize))
+
+
+
+
+
+
+
+        
+        self.menu = [[None for x in range(mwidth)] for y in range(fheight)]
+        self.prog = [['_' for x in range(pwidth)] for y in range(fheight)]
     
 
 
