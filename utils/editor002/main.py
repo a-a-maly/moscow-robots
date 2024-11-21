@@ -1,146 +1,150 @@
+import os
+import warnings
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
-csize = 64
-hwidth = 6
-fwidth = 12
-fheight = 12
+class IconsLoader:
 
-cmds = []
-
-cmd0 = [[i, "rblock" + i] for i in "123456"]
-cmds.append(cmd0)
-cmd1 = [("rfwd", "rfwd"), ("rtleft", "rtleft"), ("rtright", "rtright"), ("rfix", "rfix")]
-cmds.append(cmd1)
-
-
-
-
-prog  = [[None for x in range(hwidth)] for y in range(fheight)]
-progb = [[None for x in range(hwidth)] for y in range(fheight)]
-
-
-pygame.display.init()
-screen_resolution = (fwidth * csize, fheight * csize)
-screen = pygame.display.set_mode(screen_resolution)
-
-t = pygame.image.load("rblock.png").convert_alpha()
-prog_bg = pygame.transform.scale(t, (csize, csize))
-
-cmdst = []
-for line in cmds:
-    cmdstl = []
-    for cmd in line:
-        t = pygame.image.load(cmd[1] + ".png").convert_alpha()
-        t = pygame.transform.scale(t, (csize * 4 // 5, csize * 4 // 5))
-        cmdstl.append(t)
-    cmdst.append(cmdstl)
-
-pos_active = (0, 0)
-flag_not = False
-flag_loop = False
-
-def redraw():
-    screen.fill((0, 0, 255))
-    for y in range(fheight):
-        for x in range(hwidth):
-            bx, by = (csize * (x + hwidth), csize * y)
-            
-            screen.blit(prog_bg, (bx, by))
-            p = prog[y][x]
-            if p:
-                psize = p[1].get_size()
-                ax = (csize - psize[0]) // 2
-                ay = (csize - psize[1]) // 2
-                screen.blit(p[1], (bx + ax, by + ay))
-
-    for y in range(len(cmds)):
-        for x in range(len(cmds[y])):
-            bx, by = (csize * x, csize * y)
-            t = cmdst[y][x]
-            if pos_active == (x, y):
-                screen.blit(prog_bg, (bx, by))
-            if t:
-                psize = t.get_size()
-                ax = (csize - psize[0]) // 2
-                ay = (csize - psize[1]) // 2
-                screen.blit(t, (bx + ax, by + ay))
-
-def decode_position(pos):
-    x, y = pos
-    ty = y // csize
-    if not (0 <= ty < fheight):
-        return None
-    tx = x // csize
-    if not (0 <= tx < fwidth):
-        return None
-    return (tx // hwidth, tx % hwidth, ty)
-
-def do_click(pos):
-    global pos_active
-    dpos = decode_position(pos)
-    if not dpos:
-        return False
-    h, x, y = dpos
-    if h:
-        # program pane
-        cmd  = cmds [pos_active[1]][pos_active[0]][0]
-        cmdt = cmdst[pos_active[1]][pos_active[0]]
+    def __init__(self):
+        self.cmd_fnames = {
+           "_": "delete_command",
+           "nop": "do_nop",
         
-        if prog[y][x] and cmd == prog[y][x][0]:
-            prog [y][x] = progb[y][x]
-            progb[y][x] = None
-        else:
-            progb[y][x] = prog[y][x]
-            prog [y][x] = (cmd, cmdt)
-        return True
-    else:
-        #command pane
-        if y >= len(cmds) or x >= len(cmds[y]):
-            return False
-        pos_active = (x, y)
-        return True
+           "A": "do_sub_a",
+           "B": "do_sub_b",
+           "C": "do_sub_c",
+           "D": "do_sub_d",
+           "E": "do_sub_e",
+        
+           "fl0-": "do_fl0_down",
+           "fl0+": "do_fl0_up",
+           "fl1-": "do_fl1_down",
+           "fl1+": "do_fl1_up",
+           "pit0": "do_pit_clear",
+           "pit++": "do_pit_inc",
+           "pit--": "do_pit_dec",
+           "mem0": "do_mem_clear",
+           "mem+p": "do_mem_add",
+           "mem-p": "do_mem_sub",
+        
+           "rfwd": "do_step_forward",
+           "rright": "do_turn_right",
+           "rleft": "do_turn_left",
+           "rfix": "do_paint",
+           "rtow": "do_tow",
+        
+           "rmup": "do_move_up",
+           "rmright": "do_move_right",
+           "rmdown": "do_move_down",
+           "rmleft": "do_move_left",
+        
+           "radd": "do_link_all",
+           "radd1": "do_link_one",
+           "rdrop": "do_unlink_all",
+           "rdrop1": "do_unlink_one",
+        
+           "(1)": "loop_1",
+           "(2)": "loop_2",
+           "(3)": "loop_3",
+           "(4)": "loop_4",
+           "(5)": "loop_5",
+           "(6)": "loop_6",
+           "(pit)": "loop_pit",
+           "(mem)": "loop_mem",
+        
+           "<fl0>": "if_fl0_up",
+           "<!fl0>": "if_fl0_down",
+           "<fl1>": "if_fl1_up",
+           "<!fl1>": "if_fl1_down",
+           "<pit>": "if_not_pit_empty",
+           "<!pit>": "if_pit_empty",
+           "<memeq>": "if_mem_eq",
+           "<!memeq>": "if_mem_ne",
+           "<memlt>": "if_mem_lt",
+           "<!memlt>": "",
+           "<memgt>": "if_mem_gt",
+           "<!memgt>": "",
+        
+           "<rclr>": "if_way_clean",
+           "<!rclr>": "if_not_way_clean",
+           "<rfwd>": "if_can_step",
+           "<!rfwd>": "if_not_can_step",
+        
+           "<rcnor>": "if_cell_azure",
+           "<!rcnor>": "if_not_cell_azure",
+           "<rcbro>": "if_cell_gray",
+           "<!rcbro>": "if_not_cell_gray",
+           "<rcfix>": "if_cell_blue",
+           "<!rcfix>": "if_not_cell_blue",
+        
+           "<rmup>": "if_can_move_up",
+           "<!rmup>": "if_not_can_move_up",
+           "<rmright>": "if_can_move_right",
+           "<!rmright>": "if_not_can_move_right",
+           "<rmdown>": "if_can_move_down",
+           "<!rmdown>": "if_not_can_move_down",
+           "<rmleft>": "if_can_move_left",
+           "<!rmleft>": "if_not_can_move_left",
+        
+           "<radd>": "if_can_link",
+           "<!radd>": "if_not_can_link",
+           "<rdrop>": "if_can_unlink",
+           "<!rdrop>": "if_not_can_unlink",
+        
+           "[fl0]": "while_fl0_up",
+           "[!fl0]": "while_fl0_down",
+           "[fl1]": "while_fl1_up",
+           "[!fl1]": "while_fl1_down",
+           "[pit]": "while_not_pit_empty",
+           "[!pit]": "while_pit_empty",
+           "[memeq]": "while_mem_eq",
+           "[!memeq]": "while_mem_ne",
+           "[memlt]": "while_mem_lt",
+           "[!memlt]": "",
+           "[memgt]": "while_mem_gt",
+           "[!memgt]": "",
+        
+           "[rclr]": "while_way_clean",
+           "[!rclr]": "while_not_way_clean",
+           "[rfwd]": "while_can_step",
+           "[!rfwd]": "",
+        
+           "[rcnor]": "while_cell_azure",
+           "[!rcnor]": "while_not_cell_azure",
+           "[rcbro]": "while_cell_gray",
+           "[!rcbro]": "while_not_cell_gray",
+           "[rcfix]": "while_cell_blue",
+           "[!rcfix]": "while_not_cell_blue",
+        
+           "[rmup]": "while_can_move_up",
+           "[!rmup]": "while_not_can_move_up",
+           "[rmright]": "while_can_move_right",
+           "[!rmright]": "while_not_can_move_right",
+           "[rmdown]": "while_can_move_down",
+           "[!rmdown]": "while_not_can_move_down",
+           "[rmleft]": "while_can_move_left",
+           "[!rmleft]": "while_not_can_move_left",
+
+           "[radd]": "while_can_link",
+           "[!radd]": "while_not_can_link",
+           "[rdrop]": "while_can_unlink",
+           "[!rdrop]": "while_not_can_unlink",
+        }
+
+        self.cmd_icons = dict()
+        for (key, name) in self.cmd_fnames.items():
+            t = None
+            if name:
+                fname = os.path.join("icons", name + ".png")
+                t = pygame.image.load(fname)
+            self.cmd_icons[key] = t
+
+    def get_icons(self):
+        return self.cmd_icons     
+
+    
+class PEditor:
+    pass
+    
 
 
-def dump_program(prog):
-    for line in prog:
-        l = len(line)
-        while l > 0:
-            if line[l - 1]: break
-            l -= 1
-        for cmd in line[:l]:
-            if cmd:
-                print(cmd[0], end=' ')
-            else:
-                print('_', end = ' ')
-        print()
-
-pygame.event.set_blocked(pygame.MOUSEMOTION)
-flag_dirty = True
-while True:
-    if flag_dirty:
-        flag_dirty = False
-        redraw()
-        pygame.display.flip()
-
-    ev = pygame.event.wait()
-
-    if ev.type == pygame.WINDOWSHOWN:
-        pygame.display.flip()
-        continue
-
-    if ev.type == pygame.QUIT:
-        break
-
-    if ev.type == pygame.KEYDOWN:
-        if ev.key == pygame.K_ESCAPE:
-            break
-
-    if ev.type == pygame.MOUSEBUTTONDOWN:
-        mpos = ev.pos
-        if ev.button == 1:
-            flag_dirty = do_click(ev.pos)
-            continue
-
-
-dump_program(prog)
-pygame.quit()
