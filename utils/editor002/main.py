@@ -1,5 +1,7 @@
+#! /usr/bin/python3
+
 import os
-import warnings
+import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
@@ -61,9 +63,9 @@ class IconsLoader:
            "<memeq>": "if_mem_eq",
            "<!memeq>": "if_mem_ne",
            "<memlt>": "if_mem_lt",
-           "<!memlt>": "",
+           "<!memlt>": "if_mem_ge",
            "<memgt>": "if_mem_gt",
-           "<!memgt>": "",
+           "<!memgt>": "if_mem_le",
         
            "<rclr>": "if_way_clean",
            "<!rclr>": "if_not_way_clean",
@@ -100,14 +102,14 @@ class IconsLoader:
            "[memeq]": "while_mem_eq",
            "[!memeq]": "while_mem_ne",
            "[memlt]": "while_mem_lt",
-           "[!memlt]": "",
+           "[!memlt]": "while_mem_ge",
            "[memgt]": "while_mem_gt",
-           "[!memgt]": "",
+           "[!memgt]": "while_mem_le",
         
            "[rclr]": "while_way_clean",
            "[!rclr]": "while_not_way_clean",
            "[rfwd]": "while_can_step",
-           "[!rfwd]": "",
+           "[!rfwd]": "while_not_can_step",
         
            "[rcnor]": "while_cell_azure",
            "[!rcnor]": "while_not_cell_azure",
@@ -145,14 +147,15 @@ class IconsLoader:
     
 class PEditor:
 
-    def __init__:
+    def __init__(self):
         self.csize = 48
         self.mwidth = 8
         self.pwidth = 8
         self.fheight = 16
 
+        csize = self.csize
         pygame.display.init()
-        screen_resolution = (self.mwidth + self.pwidth) * csize, self.fheight * csize)
+        screen_resolution = ((self.mwidth + self.pwidth) * csize, self.fheight * csize)
         screen = pygame.display.set_mode(screen_resolution)
 
         t = pygame.image.load("rblock.png").convert_alpha()
@@ -165,8 +168,13 @@ class PEditor:
 
 
         
-        self.menu = [[None for x in range(mwidth)] for y in range(fheight)]
-        self.prog = [['_' for x in range(pwidth)] for y in range(fheight)]
+        self.menu = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
+        self.prog  = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+        self.bprog = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+
+        time.sleep(1) 
     
 
+il = IconsLoader()
+pe = PEditor()
 
