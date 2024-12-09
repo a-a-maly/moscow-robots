@@ -148,6 +148,7 @@ class IconsLoader:
 class PEditor:
 
     def __init__(self):
+
         self.csize = 48
         self.mwidth = 8
         self.pwidth = 8
@@ -156,25 +157,36 @@ class PEditor:
         csize = self.csize
         pygame.display.init()
         screen_resolution = ((self.mwidth + self.pwidth) * csize, self.fheight * csize)
-        screen = pygame.display.set_mode(screen_resolution)
+        self.screen = pygame.display.set_mode(screen_resolution)
+        self.screen.fill((0, 0, 0))
+
+        self.menu_rect = (0, 0, self.mwidth * csize, self.fheight * csize)
+        self.menu_sf = self.screen.subsurface(self.menu_rect)
+        self.menu_blank = self.menu_sf.subsurface((0, 0, csize, csize)).copy()
+
+        self.prog_rect = (self.mwidth * csize, 0, self.pwidth * csize, self.fheight * csize)
+        self.prog_sf = self.screen.subsurface(self.prog_rect)
+        self.prog_sf.fill((0, 0, 255))
+        self.prog_blank = self.prog_sf.subsurface((0, 0, csize, csize)).copy()
 
         t = pygame.image.load("rblock.png").convert_alpha()
         self.iframe = pygame.transform.scale(t, (csize, csize))
 
-
-
-
-
+        il = IconsLoader()
+        self.images = il.get_icons()
+        d = dict()
+        #for (key, v) in il.get_icons():
+            
 
 
         
-        self.menu = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
+        self.menu0 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
+        self.menu1 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
         self.prog  = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
-        self.bprog = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+        self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
         time.sleep(1) 
     
 
-il = IconsLoader()
 pe = PEditor()
 
