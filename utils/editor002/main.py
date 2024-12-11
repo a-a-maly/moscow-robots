@@ -156,18 +156,21 @@ class PEditor:
 
         csize = self.csize
         pygame.display.init()
+        pygame.display.set_caption("PEditor")
         screen_resolution = ((self.mwidth + self.pwidth) * csize, self.fheight * csize)
         self.screen = pygame.display.set_mode(screen_resolution)
         self.screen.fill((0, 0, 0))
 
         self.menu_rect = (0, 0, self.mwidth * csize, self.fheight * csize)
         self.menu_sf = self.screen.subsurface(self.menu_rect)
-        self.menu_blank = self.menu_sf.subsurface((0, 0, csize, csize)).copy()
+        self.menu_blank = pygame.Surface((csize, csize))
+        self.menu_blank.blit(self.menu_sf, (0, 0), (0, 0, csize, csize))
 
         self.prog_rect = (self.mwidth * csize, 0, self.pwidth * csize, self.fheight * csize)
         self.prog_sf = self.screen.subsurface(self.prog_rect)
-        self.prog_sf.fill((0, 0, 255))
-        self.prog_blank = self.prog_sf.subsurface((0, 0, csize, csize)).copy()
+        self.prog_sf.fill((0, 0, 191))
+        self.prog_blank = pygame.Surface((csize, csize))
+        self.prog_blank.blit(self.prog_sf, (0, 0), (0, 0, csize, csize))
 
         t = pygame.image.load("rblock.png").convert_alpha()
         self.iframe = pygame.transform.scale(t, (csize, csize))
@@ -175,18 +178,124 @@ class PEditor:
         il = IconsLoader()
         self.images = il.get_icons()
         d = dict()
-        #for (key, v) in il.get_icons():
-            
+        for (key, v) in il.get_icons().items():
+            t = v.convert_alpha()
+            t = pygame.transform.smoothscale(t, (csize * 7 // 8, csize * 7 // 8))
+            ts = t.get_size()
+            dx = (csize - ts[0]) // 2
+            dy = (csize - ts[1]) // 2
+            w = pygame.Surface((csize, csize), pygame.SRCALPHA)
+            w.fill((0, 0, 0, 0))
+            w.blit(t, (dx, dy), (0, 0, ts[0], ts[1]))
+            d[key] = w
+        self.menu_icons = d
+        self.prog_icons = d.copy()
+        self.prog_icons['_'] = self.prog_blank
 
 
-        
-        self.menu0 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
-        self.menu1 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
-        self.prog  = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+        menu0 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
+        menu1 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
+        self.menus = [menu0, menu1]
+        self.menu_id = 0
+        self.menu_selected = "_"
+        self.proga = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
         self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
-        time.sleep(1) 
-    
+        robot_dict = [
+            [['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)'], [], ['_', '_']]
+        ]
+        self.fill_menus(robot_dict)
+
+
+    def fill_menus(self, d):
+        ny = min(len(d), self.fheight)
+        for y in range(ny):
+            dy = d[y]
+            nx = min(len(dy), self.mwidth)
+            for x in range(nx):
+                dyx = dy[x]
+                l = min(len(dyx), 2)
+                for z in range(l):
+                    self.menus[z][y][x] = dyx[z]
+
+    def get_current_prog(self):
+        prog = [[self.proga[y][x] for x in range(self.pwidth)] for y in range(self.fheight)]
+        for line in prog:
+            while line and line[-1] == '_':
+                line.pop()
+        while prog and not prog[-1]:
+            prog.pop()
+        res = ""
+        for line in prog:
+            res += " ".join(line) + "\n"
+        return res
+
+    def redraw_menu(self):
+        csize = self.csize
+        menu = self.menus[self.menu_id]
+        for y in range(self.fheight):
+            for x in range(self.mwidth):
+                cx, cy = x * csize, y * csize
+                self.menu_sf.blit(self.menu_blank, (cx, cy))
+                s = menu[y][x]
+                if not s:
+                    continue
+                if s == self.menu_selected:
+                    self.menu_sf.blit(self.iframe, (cx, cy))
+                t = self.menu_icons.get(s, None)
+                if t:
+                    self.menu_sf.blit(t, (cx, cy))
+
+    def redraw_prog(self):
+        csize = self.csize
+        for y in range(self.fheight):
+            for x in range(self.pwidth):
+                t = self.prog_icons[self.proga[y][x]]
+                self.prog_sf.blit(t, (x * csize, y * csize))
+
+
+    def redraw(self):
+        self.redraw_menu()
+        self.redraw_prog()
+
+    def do_click(self, ev):
+        return True
+
+
+    def main(self):
+        pygame.event.set_blocked(pygame.MOUSEMOTION)
+        flag_dirty = True
+        while True:
+            if flag_dirty:
+                flag_dirty = False
+                self.redraw()
+                pygame.display.flip()
+
+            ev = pygame.event.wait()
+
+            if ev.type == pygame.WINDOWSHOWN:
+                pygame.display.flip()
+                continue
+
+            if ev.type == pygame.QUIT:
+                break
+
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_ESCAPE:
+                    break
+                if ev.key == pygame.K_TAB:
+                    self.menu_id = 1 - self.menu_id
+                    flag_dirty = True
+                    continue
+
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                if ev.button == 1:
+                    flag_dirty = self.do_click(ev)
+                    continue
+
+        pygame.display.flip()
+        print(self.get_current_prog())
 
 pe = PEditor()
+pe.main()
 
