@@ -202,7 +202,15 @@ class PEditor:
         self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
         robot_dict = [
-            [['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)'], [], ['_', '_']]
+            [['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)', 'nop'], [], ['_', '_']],
+            [['pit0', 'mem0'], ['pit++', 'mem+p'], ['pit--', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
+            [['<memeq>', '[memeq]'], ['<!memeq>', '[!memeq]'], ['<memlt>', '[memlt]'], ['<memgt>', '[memgt]'], ['<!memlt>', '[!memlt]'], ['<!memgt>', '[!memgt]'], ['', ''], ['', '']],
+            [['fl0+', 'fl1+'], ['fl0-', 'fl1-'], ['<fl0>', '<fl1>'], ['<!fl0>', '<!fl1>'], ['[fl0]', '[fl1]'], ['[!fl0]', '[!fl1]'], ['', ''], ['', '']],
+            [['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclr>', '<rfwd>'], ['<!rclr>', '<!rfwd>'], ['[rclr]', '[rfwd]'], ['[!rclr]', '[!rfwd]']],
+            [['<rcnor>', '[rcnor]'], ['<!rcnor>', '[!rcnor]'], ['<rcbro>', '[rcbro]'], ['<!rcbro>', '[!rcbro]'], ['<rcfix>', '[rcfix]'], ['<!rcfix>', '[!rcfix]'], ['', ''], ['', '']],
+            [['rmup', 'rmup'], ['rmright', 'rmright'], ['rmdown', 'rmdown'], ['rmleft', 'rmleft'], ['', ''], ['', ''], ['', ''], ['', '']],
+            [['<rmup>', '[rmup]'], ['<!rmup>', '[!rmup]'], ['<rmright>', '[rmright]'], ['<!rmright>', '[!rmright]'], ['<rmdown>', '[rmdown]'], ['<!rmdown>', '[!rmdown]'], ['<rmleft>', '[rmleft]'], ['<!rmleft>', '[!rmleft]']],
+            [['radd1', 'radd1'], ['radd', 'radd'], ['rdrop1', 'rdrop1'], ['rdrop', 'rdrop'], ['<radd>', '[radd]'], ['<!radd>', '[!radd]'], ['<rdrop>', '[rdrop]'], ['<!rdrop>', '[!rdrop]']],
         ]
         self.fill_menus(robot_dict)
 
