@@ -197,7 +197,7 @@ class PEditor:
         menu1 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
         self.menus = [menu0, menu1]
         self.menu_id = 0
-        self.menu_selected = "_"
+        self.cmd_selected = "_"
         self.proga = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
         self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
@@ -248,7 +248,7 @@ class PEditor:
                 s = menu[y][x]
                 if not s:
                     continue
-                if s == self.menu_selected:
+                if s == self.cmd_selected:
                     self.menu_sf.blit(self.iframe, (cx, cy))
                 t = self.menu_icons.get(s, None)
                 if t:
@@ -266,7 +266,44 @@ class PEditor:
         self.redraw_menu()
         self.redraw_prog()
 
-    def do_click(self, ev):
+    def decode_pos(self, pos):
+        none = (None, None, None)
+        x = pos[0] // self.csize
+        y = pos[1] // self.csize
+        if x < 0 or x >= self.mwidth + self.pwidth:
+            return none
+        if y < 0 or y >= self.fheight:
+            return none
+        if x >= self.mwidth:
+            return (x - self.mwidth, y, 1)
+        else:
+            return (x, y, 0)
+
+
+    def do_kbclick(self, ev):
+        return False
+
+    def do_mclick(self, ev, mods):
+        (px, py, pz) = self.decode_pos(ev.pos)
+        if pz is None:
+            return False
+        if pz:
+            # program panel
+            pressed = pygame.key.get_pressed()
+            if self.cmd_selected == self.proga[py][px]:
+                self.proga[py][px] = self.progb[py][px]
+                self.progb[py][px] = self.cmd_selected
+            else:
+                self.progb[py][px] = self.proga[py][px]
+                self.proga[py][px] = self.cmd_selected
+        else:
+            # menu panel
+            s = self.menus[self.menu_id][py][px]
+            if s:
+                self.cmd_selected = s
+            else:
+                self.menu_id = 1 - self.menu_id
+
         return True
 
 
@@ -296,10 +333,13 @@ class PEditor:
                     flag_dirty = True
                     continue
 
+            if ev.type == pygame.KEYDOWN:
+                flag_dirty = self.do_kbclick(ev)
+                continue
+
             if ev.type == pygame.MOUSEBUTTONDOWN:
-                if ev.button == 1:
-                    flag_dirty = self.do_click(ev)
-                    continue
+                flag_dirty = self.do_mclick(ev, pygame.key.get_mods())
+                continue
 
         pygame.display.flip()
         print(self.get_current_prog())
