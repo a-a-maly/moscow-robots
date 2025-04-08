@@ -254,13 +254,18 @@ class PEditor:
                 if t:
                     self.menu_sf.blit(t, (cx, cy))
 
+    def redraw_prog_cell(y, x, fill):
+        if fill:
+            self.prog_sf.blit(self.prog_blank, (x * csize, y * csize))
+        t = self.prog_icons[self.proga[y][x]]
+        self.prog_sf.blit(t, (x * csize, y * csize))
+
     def redraw_prog(self):
         self.prog_sf.fill((0, 0, 191))
         csize = self.csize
         for y in range(self.fheight):
             for x in range(self.pwidth):
-                t = self.prog_icons[self.proga[y][x]]
-                self.prog_sf.blit(t, (x * csize, y * csize))
+                self.redraw_prog_cell(y, x, False)
 
 
     def redraw(self):
@@ -297,6 +302,10 @@ class PEditor:
             else:
                 self.progb[py][px] = self.proga[py][px]
                 self.proga[py][px] = self.cmd_selected
+
+            self.redraw_prog_cell(py, px, True)
+            return False
+
         else:
             # menu panel
             s = self.menus[self.menu_id][py][px]
@@ -306,6 +315,52 @@ class PEditor:
                 self.menu_id = 1 - self.menu_id
 
         return True
+
+
+    def load_file(self, fname):
+        res = []
+        try:
+            f = open(fname, 'rt')
+        except OSError as err:
+            print(err)
+            return res
+
+        for _ in range(self.fheight):
+            l = f.readline()
+            if not l:
+                break
+            res.append(l.strip())
+
+        f.close()
+        return res 
+
+
+    def save_file(self, fname, text):
+        print("\n" + "=" * 40)
+        print(text)
+        print("=" * 40 + "\n")
+        try:
+            f = open(fname, 'wt')
+        except OSError as err:
+            print(err)
+            return False
+
+        f.write(text)
+        f.close()
+        return True
+
+
+    def edit(self, fname = None):
+        self.sname = ".pikto"
+        if fname is None:
+            fname = "a" + self.sname
+        assert isinstance(fname, str)
+        sl = len(self.sname)
+        assert len(fname) > sl and fname[-sl:] == self.sname
+        self.fname = fname
+        self.bname = fname[:-sl]
+        #plines = self.load_file(fname)
+        plines = self.save_file(fname, "Hoa!")
 
 
     def main(self):
@@ -346,5 +401,5 @@ class PEditor:
         print(self.get_current_prog())
 
 pe = PEditor()
-pe.main()
+pe.edit()
 
