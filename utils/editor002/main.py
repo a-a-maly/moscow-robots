@@ -255,6 +255,7 @@ class PEditor:
                     self.menu_sf.blit(t, (cx, cy))
 
     def redraw_prog(self):
+        self.prog_sf.fill((0, 0, 191))
         csize = self.csize
         for y in range(self.fheight):
             for x in range(self.pwidth):
