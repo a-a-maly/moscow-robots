@@ -317,35 +317,56 @@ class PEditor:
         return True
 
 
+    def verify_prog(self, prg):
+        l = len(prg)
+        if len > self.fheight:
+            print("Too long program, trimmed to", self.fheight, "lines")
+            del prg[self.fheight:]
+            l = len(prg)
+        for i in range(l):
+            li = len(prg[i])
+            if li > self.pwidth:
+                print("Too long line", i + 1, "trimmed to", self.pwidth, "commands")
+                del prg[i][self.pwidth:]
+                li = len(prg[i])
+            for j in range(li):
+                if prg[i][j] not in self.prog_icons:
+                    print("Unknown command ", prg[i][j], "at line", i + 1, "position", j + 1, "cleaned")
+                    prg[i][j] = "_"
+
+
     def load_file(self, fname):
-        res = []
+        prg = []
         try:
             f = open(fname, 'rt')
         except OSError as err:
             print(err)
-            return res
+            return prg
 
         for _ in range(self.fheight):
             l = f.readline()
             if not l:
                 break
-            res.append(l.strip())
+            prg.append(l.split())
 
         f.close()
-        return res 
+
+        self.verify_prog(prg)
+        return prg
 
 
-    def save_file(self, fname, text):
-        print("\n" + "=" * 40)
+    def save_file(self, fname, prg):
+        print("\n" + "=" * 64)
         print(text)
-        print("=" * 40 + "\n")
+        print("=" * 64 + "\n")
         try:
             f = open(fname, 'wt')
         except OSError as err:
             print(err)
             return False
 
-        f.write(text)
+        for l in prg:
+            f.write(" ".join(l) + '\n')
         f.close()
         return True
 
@@ -359,9 +380,7 @@ class PEditor:
         assert len(fname) > sl and fname[-sl:] == self.sname
         self.fname = fname
         self.bname = fname[:-sl]
-        #plines = self.load_file(fname)
-        plines = self.save_file(fname, "Hoa!")
-
+        prg = self.load_file(fname)
 
     def main(self):
         pygame.event.set_blocked(pygame.MOUSEMOTION)
