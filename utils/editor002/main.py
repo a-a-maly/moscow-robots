@@ -2,6 +2,7 @@
 
 import os
 import time
+import argparse
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
@@ -147,9 +148,9 @@ class IconsLoader:
     
 class PEditor:
 
-    def __init__(self):
+    def __init__(self, csize = 48):
 
-        self.csize = 48
+        self.csize = csize
         self.mwidth = 8
         self.pwidth = 8
         self.fheight = 16
@@ -166,11 +167,17 @@ class PEditor:
         self.menu_blank = pygame.Surface((csize, csize))
         self.menu_blank.blit(self.menu_sf, (0, 0), (0, 0, csize, csize))
 
+        self.prog_blank = pygame.Surface((self.pwidth * csize, self.fheight * csize))
+        self.prog_blank.fill((0, 0, 191))
+        for y in range(1, self.fheight):
+            pygame.draw.line(self.prog_blank, (255, 255, 0), (0, y * csize), (self.pwidth * csize, y * csize))
+        for x in range(1, self.pwidth):
+            pygame.draw.line(self.prog_blank, (255, 255, 0), (x * csize, 0), (x * csize, self.fheight * csize))
+
+
         self.prog_rect = (self.mwidth * csize, 0, self.pwidth * csize, self.fheight * csize)
         self.prog_sf = self.screen.subsurface(self.prog_rect)
-        self.prog_sf.fill((0, 0, 191))
-        self.prog_blank = pygame.Surface((csize, csize))
-        self.prog_blank.blit(self.prog_sf, (0, 0), (0, 0, csize, csize))
+        self.prog_sf.blit(self.prog_blank, (0, 0))
 
         t = pygame.image.load("rblock.png").convert_alpha()
         self.iframe = pygame.transform.scale(t, (csize, csize))
@@ -190,14 +197,16 @@ class PEditor:
             d[key] = w
         self.menu_icons = d
         self.prog_icons = d.copy()
-        self.prog_icons['_'] = self.prog_blank
-
+        
+        self.prog_icons['_'] = None
 
         menu0 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
         menu1 = [[None for x in range(self.mwidth)] for y in range(self.fheight)]
         self.menus = [menu0, menu1]
         self.menu_id = 0
         self.cmd_selected = "_"
+        self.sname = ".pikto"
+        self.fname = "a" + self.sname
         self.proga = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
         self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
@@ -226,13 +235,17 @@ class PEditor:
                 for z in range(l):
                     self.menus[z][y][x] = dyx[z]
 
-    def get_current_prog(self):
+    def get_current_prog_lines(self):
         prog = [[self.proga[y][x] for x in range(self.pwidth)] for y in range(self.fheight)]
         for line in prog:
             while line and line[-1] == '_':
                 line.pop()
         while prog and not prog[-1]:
             prog.pop()
+        return prog
+
+    def get_current_prog(self):
+        prog = self.get_current_prog_lines()
         res = ""
         for line in prog:
             res += " ".join(line) + "\n"
@@ -254,15 +267,16 @@ class PEditor:
                 if t:
                     self.menu_sf.blit(t, (cx, cy))
 
-    def redraw_prog_cell(y, x, fill):
+    def redraw_prog_cell(self, y, x, fill):
+        csize = self.csize
         if fill:
-            self.prog_sf.blit(self.prog_blank, (x * csize, y * csize))
+            self.prog_sf.blit(self.prog_blank, (x * csize, y * csize), (x * csize, y * csize, csize, csize))
         t = self.prog_icons[self.proga[y][x]]
-        self.prog_sf.blit(t, (x * csize, y * csize))
+        if t:
+            self.prog_sf.blit(t, (x * csize, y * csize))
 
     def redraw_prog(self):
-        self.prog_sf.fill((0, 0, 191))
-        csize = self.csize
+        self.prog_sf.blit(self.prog_blank, (0, 0))
         for y in range(self.fheight):
             for x in range(self.pwidth):
                 self.redraw_prog_cell(y, x, False)
@@ -304,6 +318,7 @@ class PEditor:
                 self.proga[py][px] = self.cmd_selected
 
             self.redraw_prog_cell(py, px, True)
+            pygame.display.flip()
             return False
 
         else:
@@ -319,7 +334,7 @@ class PEditor:
 
     def verify_prog(self, prg):
         l = len(prg)
-        if len > self.fheight:
+        if l > self.fheight:
             print("Too long program, trimmed to", self.fheight, "lines")
             del prg[self.fheight:]
             l = len(prg)
@@ -355,9 +370,13 @@ class PEditor:
         return prg
 
 
-    def save_file(self, fname, prg):
+    def save_file(self, prg, fname = None):
+        if fname is None:
+            fname = self.fname
+
         print("\n" + "=" * 64)
-        print(text)
+        for l in prg:
+            print(" ".join(l))
         print("=" * 64 + "\n")
         try:
             f = open(fname, 'wt')
@@ -372,15 +391,24 @@ class PEditor:
 
 
     def edit(self, fname = None):
-        self.sname = ".pikto"
         if fname is None:
-            fname = "a" + self.sname
+            fname = self.fname
+        pygame.display.set_caption(fname)
         assert isinstance(fname, str)
         sl = len(self.sname)
         assert len(fname) > sl and fname[-sl:] == self.sname
         self.fname = fname
         self.bname = fname[:-sl]
         prg = self.load_file(fname)
+        self.proga = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+        self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
+        for y in range(len(prg)):
+            l = prg[y]
+            for x in range(len(l)):
+                self.proga[y][x] = l[x]
+
+        self.main()
+
 
     def main(self):
         pygame.event.set_blocked(pygame.MOUSEMOTION)
@@ -416,9 +444,20 @@ class PEditor:
                 flag_dirty = self.do_mclick(ev, pygame.key.get_mods())
                 continue
 
+        self.save_file(self.get_current_prog_lines())
         pygame.display.flip()
-        print(self.get_current_prog())
+        pygame.image.save(self.prog_sf, self.bname + "_prog.png")
 
-pe = PEditor()
-pe.edit()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--csize', default = 48)
+    parser.add_argument('rest', nargs = '*')
+    args = parser.parse_args()
+
+    pe = PEditor(int(args.csize))
+    if not args.rest:
+        args.rest = ["a.pikto"]
+    for fn in args.rest:
+        pe.edit(fn)
 
