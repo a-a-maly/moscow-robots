@@ -42,6 +42,11 @@ class GameRobot:
 
 
     def __init__(self, json_name):
+
+        self.flags = [False, False]
+        self.pit = 0
+        self.mem = 0
+
         self.base_name = "".join(json_name.split(".")[:-1])
         print("base_name", self.base_name)
         with open(json_name, "r") as json_file:
@@ -174,5 +179,60 @@ class GameRobot:
         if need_raise and not self.robot_alive:
             raise RuntimeError("Robot is dead")
 
+    def pit_get(self):
+        ans = self.pit
+        self.finish_step(False)
+        return ans
 
+    def pit_clear(self):
+        self.pit = 0
+        self.finish_step(False)
 
+    def pit_inc(self):
+        self.pit += 1
+        self.finish_step(False)
+
+    def pit_dec(self):
+        self.pit = max(0, self.pit - 1)
+        self.finish_step(False)
+
+    def mem_get(self):
+        ans = self.mem
+        self.finish_step(False)
+        return ans
+
+    def mem_clear(self):
+        self.mem = 0
+        self.finish_step(False)
+
+    def mem_inc(self):
+        self.mem += self.pit
+        self.finish_step(False)
+
+    def mem_dec(self):
+        self.pit = max(0, self.mem - self.pit)
+        self.finish_step(False)
+
+    def memgt(self):
+        ans = self.mem > self.pit
+        self.finish_step(False)
+        return ans
+
+    def memlt(self):
+        ans = self.mem < self.pit
+        self.finish_step(False)
+        return ans
+
+    def memeq(self):
+        ans = self.mem == self.pit
+        self.finish_step(False)
+        return ans
+
+    def fl_get(self, idx):
+        ans = self.flags[idx]
+        self.finish_step(False)
+        return ans
+
+    def fl_set(self, idx, v):
+        self.flags[idx] = v
+        self.finish_step(False)
