@@ -10,8 +10,9 @@ class IconsLoader:
 
 	def __init__(self):
 		self.cmd_fnames = {
+			"": "mframe",
 			"_": "delete_command",
-			"nop": "do_nop",
+			".": "do_nop",
 
 			"A": "do_sub_a",
 			"B": "do_sub_b",
@@ -179,11 +180,12 @@ class PEditor:
 		self.prog_sf = self.screen.subsurface(self.prog_rect)
 		self.prog_sf.blit(self.prog_blank, (0, 0))
 
-		t = pygame.image.load("rblock.png").convert_alpha()
+		il = IconsLoader()
+		self.images = il.get_icons().copy()
+		t = self.images[""].convert_alpha()
+		del self.images[""]
 		self.iframe = pygame.transform.scale(t, (csize, csize))
 
-		il = IconsLoader()
-		self.images = il.get_icons()
 		d = dict()
 		for (key, v) in il.get_icons().items():
 			t = v.convert_alpha()
