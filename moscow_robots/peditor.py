@@ -7,139 +7,140 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
 class IconsLoader:
+	cmd_fnames = {
+		"": "mframe",
+		"_": "delete_command",
+		".": "do_nop",
+
+		"A": "do_sub_a",
+		"B": "do_sub_b",
+		"C": "do_sub_c",
+		"D": "do_sub_d",
+		"E": "do_sub_e",
+
+		"fl0-": "do_fl0_down",
+		"fl0+": "do_fl0_up",
+		"fl1-": "do_fl1_down",
+		"fl1+": "do_fl1_up",
+		"pit0": "do_pit_clear",
+		"pit++": "do_pit_inc",
+		"pit--": "do_pit_dec",
+		"mem0": "do_mem_clear",
+		"mem+p": "do_mem_add",
+		"mem-p": "do_mem_sub",
+
+		"rfwd": "do_step_forward",
+		"rright": "do_turn_right",
+		"rleft": "do_turn_left",
+		"rfix": "do_paint",
+		"rtow": "do_tow",
+
+		"rmup": "do_move_up",
+		"rmright": "do_move_right",
+		"rmdown": "do_move_down",
+		"rmleft": "do_move_left",
+
+		"radd": "do_link_all",
+		"radd1": "do_link_one",
+		"rdrop": "do_unlink_all",
+		"rdrop1": "do_unlink_one",
+
+		"(1)": "loop_1",
+		"(2)": "loop_2",
+		"(3)": "loop_3",
+		"(4)": "loop_4",
+		"(5)": "loop_5",
+		"(6)": "loop_6",
+		"(pit)": "loop_pit",
+		"(mem)": "loop_mem",
+
+		"<fl0>": "if_fl0_up",
+		"<!fl0>": "if_fl0_down",
+		"<fl1>": "if_fl1_up",
+		"<!fl1>": "if_fl1_down",
+		"<pit>": "if_not_pit_empty",
+		"<!pit>": "if_pit_empty",
+		"<memeq>": "if_mem_eq",
+		"<!memeq>": "if_mem_ne",
+		"<memlt>": "if_mem_lt",
+		"<!memlt>": "if_mem_ge",
+		"<memgt>": "if_mem_gt",
+		"<!memgt>": "if_mem_le",
+
+		"<rclr>": "if_way_clean",
+		"<!rclr>": "if_not_way_clean",
+		"<rfwd>": "if_can_step",
+		"<!rfwd>": "if_not_can_step",
+
+		"<rcnor>": "if_cell_azure",
+		"<!rcnor>": "if_not_cell_azure",
+		"<rcbro>": "if_cell_gray",
+		"<!rcbro>": "if_not_cell_gray",
+		"<rcfix>": "if_cell_blue",
+		"<!rcfix>": "if_not_cell_blue",
+
+		"<rmup>": "if_can_move_up",
+		"<!rmup>": "if_not_can_move_up",
+		"<rmright>": "if_can_move_right",
+		"<!rmright>": "if_not_can_move_right",
+		"<rmdown>": "if_can_move_down",
+		"<!rmdown>": "if_not_can_move_down",
+		"<rmleft>": "if_can_move_left",
+		"<!rmleft>": "if_not_can_move_left",
+
+		"<radd>": "if_can_link",
+		"<!radd>": "if_not_can_link",
+		"<rdrop>": "if_can_unlink",
+		"<!rdrop>": "if_not_can_unlink",
+
+		"[fl0]": "while_fl0_up",
+		"[!fl0]": "while_fl0_down",
+		"[fl1]": "while_fl1_up",
+		"[!fl1]": "while_fl1_down",
+		"[pit]": "while_not_pit_empty",
+		"[!pit]": "while_pit_empty",
+		"[memeq]": "while_mem_eq",
+		"[!memeq]": "while_mem_ne",
+		"[memlt]": "while_mem_lt",
+		"[!memlt]": "while_mem_ge",
+		"[memgt]": "while_mem_gt",
+		"[!memgt]": "while_mem_le",
+
+		"[rclr]": "while_way_clean",
+		"[!rclr]": "while_not_way_clean",
+		"[rfwd]": "while_can_step",
+		"[!rfwd]": "while_not_can_step",
+
+		"[rcnor]": "while_cell_azure",
+		"[!rcnor]": "while_not_cell_azure",
+		"[rcbro]": "while_cell_gray",
+		"[!rcbro]": "while_not_cell_gray",
+		"[rcfix]": "while_cell_blue",
+		"[!rcfix]": "while_not_cell_blue",
+
+		"[rmup]": "while_can_move_up",
+		"[!rmup]": "while_not_can_move_up",
+		"[rmright]": "while_can_move_right",
+		"[!rmright]": "while_not_can_move_right",
+		"[rmdown]": "while_can_move_down",
+		"[!rmdown]": "while_not_can_move_down",
+		"[rmleft]": "while_can_move_left",
+		"[!rmleft]": "while_not_can_move_left",
+
+		"[radd]": "while_can_link",
+		"[!radd]": "while_not_can_link",
+		"[rdrop]": "while_can_unlink",
+		"[!rdrop]": "while_not_can_unlink",
+	}
+
 
 	def __init__(self):
-		self.cmd_fnames = {
-			"": "mframe",
-			"_": "delete_command",
-			".": "do_nop",
-
-			"A": "do_sub_a",
-			"B": "do_sub_b",
-			"C": "do_sub_c",
-			"D": "do_sub_d",
-			"E": "do_sub_e",
-
-			"fl0-": "do_fl0_down",
-			"fl0+": "do_fl0_up",
-			"fl1-": "do_fl1_down",
-			"fl1+": "do_fl1_up",
-			"pit0": "do_pit_clear",
-			"pit++": "do_pit_inc",
-			"pit--": "do_pit_dec",
-			"mem0": "do_mem_clear",
-			"mem+p": "do_mem_add",
-			"mem-p": "do_mem_sub",
-
-			"rfwd": "do_step_forward",
-			"rright": "do_turn_right",
-			"rleft": "do_turn_left",
-			"rfix": "do_paint",
-			"rtow": "do_tow",
-
-			"rmup": "do_move_up",
-			"rmright": "do_move_right",
-			"rmdown": "do_move_down",
-			"rmleft": "do_move_left",
-
-			"radd": "do_link_all",
-			"radd1": "do_link_one",
-			"rdrop": "do_unlink_all",
-			"rdrop1": "do_unlink_one",
-
-			"(1)": "loop_1",
-			"(2)": "loop_2",
-			"(3)": "loop_3",
-			"(4)": "loop_4",
-			"(5)": "loop_5",
-			"(6)": "loop_6",
-			"(pit)": "loop_pit",
-			"(mem)": "loop_mem",
-
-			"<fl0>": "if_fl0_up",
-			"<!fl0>": "if_fl0_down",
-			"<fl1>": "if_fl1_up",
-			"<!fl1>": "if_fl1_down",
-			"<pit>": "if_not_pit_empty",
-			"<!pit>": "if_pit_empty",
-			"<memeq>": "if_mem_eq",
-			"<!memeq>": "if_mem_ne",
-			"<memlt>": "if_mem_lt",
-			"<!memlt>": "if_mem_ge",
-			"<memgt>": "if_mem_gt",
-			"<!memgt>": "if_mem_le",
-
-			"<rclr>": "if_way_clean",
-			"<!rclr>": "if_not_way_clean",
-			"<rfwd>": "if_can_step",
-			"<!rfwd>": "if_not_can_step",
-
-			"<rcnor>": "if_cell_azure",
-			"<!rcnor>": "if_not_cell_azure",
-			"<rcbro>": "if_cell_gray",
-			"<!rcbro>": "if_not_cell_gray",
-			"<rcfix>": "if_cell_blue",
-			"<!rcfix>": "if_not_cell_blue",
-
-			"<rmup>": "if_can_move_up",
-			"<!rmup>": "if_not_can_move_up",
-			"<rmright>": "if_can_move_right",
-			"<!rmright>": "if_not_can_move_right",
-			"<rmdown>": "if_can_move_down",
-			"<!rmdown>": "if_not_can_move_down",
-			"<rmleft>": "if_can_move_left",
-			"<!rmleft>": "if_not_can_move_left",
-
-			"<radd>": "if_can_link",
-			"<!radd>": "if_not_can_link",
-			"<rdrop>": "if_can_unlink",
-			"<!rdrop>": "if_not_can_unlink",
-
-			"[fl0]": "while_fl0_up",
-			"[!fl0]": "while_fl0_down",
-			"[fl1]": "while_fl1_up",
-			"[!fl1]": "while_fl1_down",
-			"[pit]": "while_not_pit_empty",
-			"[!pit]": "while_pit_empty",
-			"[memeq]": "while_mem_eq",
-			"[!memeq]": "while_mem_ne",
-			"[memlt]": "while_mem_lt",
-			"[!memlt]": "while_mem_ge",
-			"[memgt]": "while_mem_gt",
-			"[!memgt]": "while_mem_le",
-
-			"[rclr]": "while_way_clean",
-			"[!rclr]": "while_not_way_clean",
-			"[rfwd]": "while_can_step",
-			"[!rfwd]": "while_not_can_step",
-
-			"[rcnor]": "while_cell_azure",
-			"[!rcnor]": "while_not_cell_azure",
-			"[rcbro]": "while_cell_gray",
-			"[!rcbro]": "while_not_cell_gray",
-			"[rcfix]": "while_cell_blue",
-			"[!rcfix]": "while_not_cell_blue",
-
-			"[rmup]": "while_can_move_up",
-			"[!rmup]": "while_not_can_move_up",
-			"[rmright]": "while_can_move_right",
-			"[!rmright]": "while_not_can_move_right",
-			"[rmdown]": "while_can_move_down",
-			"[!rmdown]": "while_not_can_move_down",
-			"[rmleft]": "while_can_move_left",
-			"[!rmleft]": "while_not_can_move_left",
-
-			"[radd]": "while_can_link",
-			"[!radd]": "while_not_can_link",
-			"[rdrop]": "while_can_unlink",
-			"[!rdrop]": "while_not_can_unlink",
-		}
-
+		data_path = os.path.join(os.path.dirname(__file__), 'peicons')
 		self.cmd_icons = dict()
 		for (key, name) in self.cmd_fnames.items():
 			t = None
 			if name:
-				fname = os.path.join("icons", name + ".png")
+				fname = os.path.join(data_path, name + ".png")
 				t = pygame.image.load(fname)
 			self.cmd_icons[key] = t
 
@@ -148,6 +149,17 @@ class IconsLoader:
 
 
 class PEditor:
+	robot_dict = [
+		[['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)', '.'], [], ['_', '_']],
+		[['pit0', 'mem0'], ['pit++', 'mem+p'], ['pit--', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
+		[['<memeq>', '[memeq]'], ['<!memeq>', '[!memeq]'], ['<memlt>', '[memlt]'], ['<memgt>', '[memgt]'], ['<!memlt>', '[!memlt]'], ['<!memgt>', '[!memgt]'], ['', ''], ['', '']],
+		[['fl0+', 'fl1+'], ['fl0-', 'fl1-'], ['<fl0>', '<fl1>'], ['<!fl0>', '<!fl1>'], ['[fl0]', '[fl1]'], ['[!fl0]', '[!fl1]'], ['', ''], ['', '']],
+		[['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclr>', '<rfwd>'], ['<!rclr>', '<!rfwd>'], ['[rclr]', '[rfwd]'], ['[!rclr]', '[!rfwd]']],
+		[['<rcnor>', '[rcnor]'], ['<!rcnor>', '[!rcnor]'], ['<rcbro>', '[rcbro]'], ['<!rcbro>', '[!rcbro]'], ['<rcfix>', '[rcfix]'], ['<!rcfix>', '[!rcfix]'], ['', ''], ['', '']],
+		[['rmup', 'rmup'], ['rmright', 'rmright'], ['rmdown', 'rmdown'], ['rmleft', 'rmleft'], ['', ''], ['', ''], ['', ''], ['', '']],
+		[['<rmup>', '[rmup]'], ['<!rmup>', '[!rmup]'], ['<rmright>', '[rmright]'], ['<!rmright>', '[!rmright]'], ['<rmdown>', '[rmdown]'], ['<!rmdown>', '[!rmdown]'], ['<rmleft>', '[rmleft]'], ['<!rmleft>', '[!rmleft]']],
+		[['radd1', 'radd1'], ['radd', 'radd'], ['rdrop1', 'rdrop1'], ['rdrop', 'rdrop'], ['<radd>', '[radd]'], ['<!radd>', '[!radd]'], ['<rdrop>', '[rdrop]'], ['<!rdrop>', '[!rdrop]']],
+	]
 
 	def __init__(self, csize = 48):
 
@@ -212,18 +224,7 @@ class PEditor:
 		self.proga = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 		self.progb = [['_' for x in range(self.pwidth)] for y in range(self.fheight)]
 
-		robot_dict = [
-			[['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)', 'nop'], [], ['_', '_']],
-			[['pit0', 'mem0'], ['pit++', 'mem+p'], ['pit--', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
-			[['<memeq>', '[memeq]'], ['<!memeq>', '[!memeq]'], ['<memlt>', '[memlt]'], ['<memgt>', '[memgt]'], ['<!memlt>', '[!memlt]'], ['<!memgt>', '[!memgt]'], ['', ''], ['', '']],
-			[['fl0+', 'fl1+'], ['fl0-', 'fl1-'], ['<fl0>', '<fl1>'], ['<!fl0>', '<!fl1>'], ['[fl0]', '[fl1]'], ['[!fl0]', '[!fl1]'], ['', ''], ['', '']],
-			[['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclr>', '<rfwd>'], ['<!rclr>', '<!rfwd>'], ['[rclr]', '[rfwd]'], ['[!rclr]', '[!rfwd]']],
-			[['<rcnor>', '[rcnor]'], ['<!rcnor>', '[!rcnor]'], ['<rcbro>', '[rcbro]'], ['<!rcbro>', '[!rcbro]'], ['<rcfix>', '[rcfix]'], ['<!rcfix>', '[!rcfix]'], ['', ''], ['', '']],
-			[['rmup', 'rmup'], ['rmright', 'rmright'], ['rmdown', 'rmdown'], ['rmleft', 'rmleft'], ['', ''], ['', ''], ['', ''], ['', '']],
-			[['<rmup>', '[rmup]'], ['<!rmup>', '[!rmup]'], ['<rmright>', '[rmright]'], ['<!rmright>', '[!rmright]'], ['<rmdown>', '[rmdown]'], ['<!rmdown>', '[!rmdown]'], ['<rmleft>', '[rmleft]'], ['<!rmleft>', '[!rmleft]']],
-			[['radd1', 'radd1'], ['radd', 'radd'], ['rdrop1', 'rdrop1'], ['rdrop', 'rdrop'], ['<radd>', '[radd]'], ['<!radd>', '[!radd]'], ['<rdrop>', '[rdrop]'], ['<!rdrop>', '[!rdrop]']],
-		]
-		self.fill_menus(robot_dict)
+		self.fill_menus(self.robot_dict)
 
 
 	def fill_menus(self, d):
@@ -410,6 +411,9 @@ class PEditor:
 				self.proga[y][x] = l[x]
 
 		self.main_loop()
+		self.save_file(self.get_current_prog_lines())
+		pygame.display.flip()
+		pygame.image.save(self.prog_sf, self.bname + "_prog.png")
 
 
 	def main_loop(self):
@@ -446,9 +450,6 @@ class PEditor:
 				flag_dirty = self.do_mclick(ev, pygame.key.get_mods())
 				continue
 
-		self.save_file(self.get_current_prog_lines())
-		pygame.display.flip()
-		pygame.image.save(self.prog_sf, self.bname + "_prog.png")
 
 	@staticmethod
 	def main():
