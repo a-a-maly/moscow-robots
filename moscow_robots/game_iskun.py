@@ -1,3 +1,5 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame, pygame.freetype
 from moscow_robots.data import get_image
 from moscow_robots.game_robot import GameRobot
