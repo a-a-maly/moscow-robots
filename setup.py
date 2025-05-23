@@ -13,5 +13,5 @@ setuptools.setup(
 		'Programming Language :: Python :: 3',
 	],
 	include_package_data = True,
-	package_data = {'' : ['textures/*.png']}
+	package_data = {'' : ['textures/*.png', 'peicons/*.png']}
 )
