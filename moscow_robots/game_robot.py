@@ -30,6 +30,9 @@ class RobotData:
         return res
 
 class GameRobot:
+    # no actual class
+    robot_class_kind = 0
+
     direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
     def next_pos(pos, d):
@@ -44,7 +47,6 @@ class GameRobot:
 
 
     def __init__(self, json_name):
-
         self.flags = [False, False]
         self.pit = 0
         self.mem = 0
@@ -57,6 +59,7 @@ class GameRobot:
         self.robot = RobotData()
         self.robot.load(self.json_data["robot"])
         self.robot_kind = self.robot.kind
+        assert self.robot_class_kind == self.robot_kind
 
         fdata = self.json_data["field"]
         self.field = None
@@ -238,3 +241,27 @@ class GameRobot:
     def fl_set(self, idx, v):
         self.flags[idx] = v
         self.finish_step(False)
+
+    @classmethod
+    def make_robot(cls, json_name):
+        with open(json_name, "r") as json_file:
+            json_data = json.load(json_file)
+        robot = RobotData()
+        robot.load(json_data["robot"])
+        r = None
+        match robot.kind:
+            case 1:
+                r = moscow_robots.GameVertun()
+            case 2: 
+                r = moscow_robots.GameIskun()
+            case 3: 
+                r = moscow_robots.GameDvigun()
+            case 4: 
+                r = moscow_robots.GameDvigun()
+            case 5: 
+                r = moscow_robots.GameTrain()
+            case 6: 
+                r = moscow_robots.GamePolzun()
+            case _: assert not ("Unknown robot kind " + str(robot.kind))
+
+        return r

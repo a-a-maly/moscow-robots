@@ -38,6 +38,7 @@ class Textures:
 
 
 class GameIskun(GameRobot):
+    robot_class_kind = 2
 
     def __init__(self, json_name):
         GameRobot.__init__(self, json_name)

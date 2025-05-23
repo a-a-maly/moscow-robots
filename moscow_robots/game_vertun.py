@@ -114,6 +114,7 @@ class Textures:
 
 
 class GameVertun(GameRobot):
+    robot_class_kind = 1
 
     def __init__(self, json_name):
         GameRobot.__init__(self, json_name)

@@ -162,6 +162,7 @@ class Textures(DvigunTextures):
 
 
 class GameTrain(GameRobot):
+    robot_class_kind = 5
 
     def __init__(self, json_name):
         GameRobot.__init__(self, json_name)

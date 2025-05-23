@@ -133,6 +133,7 @@ class DvigunTextures:
 
 
 class GameDvigun(GameRobot):
+    robot_class_kind = 3
 
     def __init__(self, json_name):
         GameRobot.__init__(self, json_name)
