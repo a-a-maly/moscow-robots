@@ -412,6 +412,7 @@ class PEditor:
 		self.save_file(self.get_current_prog_lines())
 		pygame.display.flip()
 		pygame.image.save(self.prog_sf, self.bname + "_prog.png")
+		pygame.quit()
 
 
 	def main_loop(self):

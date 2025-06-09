@@ -101,6 +101,7 @@ class GameRobot:
         print("ok:", ok)
         self.game_mode = 2 # step by step
         self.finish_step(True, False, False)
+        pygame.quit()
         if not self.robot_alive:
             return True
 
@@ -145,6 +146,7 @@ class GameRobot:
                     pygame.display.flip()
                     continue
                 if ev.type == pygame.QUIT:
+                    pygame.quit()
                     sys.exit("Closed by user ")
                     flag = False
                     continue
