@@ -259,7 +259,7 @@ class GameRobot:
             case 3: 
                 r = moscow_robots.GameDvigun()
             case 4: 
-                r = moscow_robots.GameDvigun()
+                r = moscow_robots.GameTyagun()
             case 5: 
                 r = moscow_robots.GameTrain()
             case 6: 
