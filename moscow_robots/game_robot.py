@@ -48,7 +48,7 @@ class GameRobot:
         return (x - dx, y - dy)
 
 
-    def __init__(self, json_name):
+    def __init__(self, json_name, csize = None):
         self.flags = [False, False]
         self.pit = 0
         self.mem = 0
@@ -67,13 +67,16 @@ class GameRobot:
         self.field = None
         self.fsize = (fdata["sx"], fdata["sy"])
 
-        ssize = (800, 800)
         fsize_minx, fsize_miny = 3, 2
         fsize_x = max(fsize_minx, self.fsize[0])
         fsize_y = max(fsize_miny, self.fsize[1])
-        csize_x = ssize[0] // fsize_x
-        csize_y = ssize[1] // fsize_y
-        csize = min(csize_x, csize_y)
+
+        if csize is None:
+            ssize = (800, 800)
+            csize_x = ssize[0] // fsize_x
+            csize_y = ssize[1] // fsize_y
+            csize = min(csize_x, csize_y)
+
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * fsize_x, self.csize[1] * fsize_y)    
 
@@ -247,7 +250,7 @@ class GameRobot:
         self.finish_step(False)
 
     @classmethod
-    def make_robot(cls, json_name):
+    def make_robot(cls, json_name, csize = None):
         with open(json_name, "r") as json_file:
             json_data = json.load(json_file)
         rd = RobotData()
@@ -255,17 +258,23 @@ class GameRobot:
         r = None
         match rd.kind:
             case 1:
-                r = moscow_robots.GameVertun(json_name)
+                r = moscow_robots.GameVertun(json_name, csize)
             case 2: 
-                r = moscow_robots.GameIskun(json_name)
+                r = moscow_robots.GameIskun(json_name, csize)
             case 3: 
-                r = moscow_robots.GameDvigun(json_name)
+                r = moscow_robots.GameDvigun(json_name, csize)
             case 4: 
-                r = moscow_robots.GameTyagun(json_name)
+                r = moscow_robots.GameTyagun(json_name, csize)
             case 5: 
-                r = moscow_robots.GameTrain(json_name)
+                r = moscow_robots.GameTrain(json_name, csize)
             case 6: 
-                r = moscow_robots.GamePolzun(json_name)
+                r = moscow_robots.GamePolzun(json_name, csize)
             case _: assert not ("Unknown robot kind " + str(rd.kind))
 
         return r
+
+    @classmethod
+    def run_robots(cls, l, csize = None):
+        for json_name in l:
+            r = cls.make_robot(json_name, csize)
+
