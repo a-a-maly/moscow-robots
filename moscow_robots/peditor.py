@@ -3,6 +3,7 @@ import time
 import argparse
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
+from moscow_robots.pikto2py import Pikto2Py
 
 class IconsLoader:
 	cmd_fnames = {
@@ -413,6 +414,7 @@ class PEditor:
 		pygame.display.flip()
 		pygame.image.save(self.prog_sf, self.bname + "_prog.png")
 		pygame.quit()
+		Pikto2Py.compile_file(self.fname)
 
 
 	def main_loop(self):
