@@ -1,0 +1,10 @@
+rfwd rleft rfwd rright
+A A A A
+B B
+
+A
+B rleft rleft B
+rright rfwd rright
+
+B
+(3) rfwd
