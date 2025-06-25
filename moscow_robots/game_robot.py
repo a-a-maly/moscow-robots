@@ -3,6 +3,8 @@ import json
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
+import moscow_robots
+
 
 class RobotData:
     def __init__(self):
@@ -248,22 +250,22 @@ class GameRobot:
     def make_robot(cls, json_name):
         with open(json_name, "r") as json_file:
             json_data = json.load(json_file)
-        robot = RobotData()
-        robot.load(json_data["robot"])
+        rd = RobotData()
+        rd.load(json_data["robot"])
         r = None
-        match robot.kind:
+        match rd.kind:
             case 1:
-                r = moscow_robots.GameVertun()
+                r = moscow_robots.GameVertun(json_name)
             case 2: 
-                r = moscow_robots.GameIskun()
+                r = moscow_robots.GameIskun(json_name)
             case 3: 
-                r = moscow_robots.GameDvigun()
+                r = moscow_robots.GameDvigun(json_name)
             case 4: 
-                r = moscow_robots.GameTyagun()
+                r = moscow_robots.GameTyagun(json_name)
             case 5: 
-                r = moscow_robots.GameTrain()
+                r = moscow_robots.GameTrain(json_name)
             case 6: 
-                r = moscow_robots.GamePolzun()
-            case _: assert not ("Unknown robot kind " + str(robot.kind))
+                r = moscow_robots.GamePolzun(json_name)
+            case _: assert not ("Unknown robot kind " + str(rd.kind))
 
         return r
