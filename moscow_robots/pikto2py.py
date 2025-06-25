@@ -27,7 +27,15 @@ class Pikto2Py:
 		"rleft" : (1, "mr.turn_left()"),
 		"rright" : (1, "mr.turn_right()"),
 		"rfix" : (1, "mr.fix_cell()"),
-		"rtow" : (1, "mr.tow()"), # for Tyagun
+
+		# for Tyagun
+		"rtow" : (1, "mr.tow()"),
+
+		# for Iskun
+		"rmup": (1, "mr.step_up()"),
+		"rmright": (1, "mr.step_right()"),
+		"rmdown": (1, "mr.step_down()"),
+		"rmleft": (1, "mr.step_left()"),
 
 		# subroutines
 		"@" : (3, "proc_main()"),
@@ -67,8 +75,10 @@ class Pikto2Py:
 
 		"<rclear>" : (5, "mr.path_clear()"),
 		"<!rclear>" : (5, " not mr.path_clear()"),
-		"<rfwd>" : (5, "mr.can_step_forward()"), #for Dvigun
-		"<!rfwd>" : (5, "not mr.can_step_forward()"), #for Dvigun
+
+		# for Dvigun
+		"<rfwd>" : (5, "mr.can_step_forward()"),
+		"<!rfwd>" : (5, "not mr.can_step_forward()"),
 
 		"<rcnor>" : (5, "mr.cell_normal()"),
 		"<!rcnor>" : (5, "not mr.cell_normal()"),
@@ -76,6 +86,16 @@ class Pikto2Py:
 		"<!rcbro>" : (5, "not mr.cell_broken()"),
 		"<rcfix>" : (5, "mr.cell_fixed()"),
 		"<!rcfix>" : (5, "not mr.cell_fixed()"),
+
+		# for Iskun
+		"<rmup>": (5, "mr.path_clear_up()"),
+		"<rmright>": (5, "mr.path_clear_right()"),
+		"<rmdown>": (5, "mr.path_clear_down()"),
+		"<rmleft>": (5, "mr.path_clear_left()"),
+		"<!rmup>": (5, "not mr.path_clear_up()"),
+		"<!rmright>": (5, "not mr.path_clear_right()"),
+		"<!rmdown>": (5, "not mr.path_clear_down()"),
+		"<!rmleft>": (5, "not mr.path_clear_left()"),
 
 		# while conditionals
 		"[pit]" : (6, "(pitcher > 0)"),
@@ -95,8 +115,10 @@ class Pikto2Py:
 
 		"[rclear]" : (6, "mr.path_clear()"),
 		"[!rclear]" : (6, "not mr.path_clear()"),
-		"[rfwd]" : (6, "mr.can_step_forward()"), #for Dvigun
-		"[!rfwd]" : (6, "not mr.can_step_forward()"), #for Dvigun
+
+		# for Dvigun
+		"[rfwd]" : (6, "mr.can_step_forward()"),
+		"[!rfwd]" : (6, "not mr.can_step_forward()"),
 
 		"[rcnor]" : (6, "mr.cell_normal()"),
 		"[!rcnor]" : (6, "not mr.cell_normal()"),
@@ -104,6 +126,17 @@ class Pikto2Py:
 		"[!rcbro]" : (6, "not mr.cell_broken()"),
 		"[rcfix]" : (6, "mr.cell_fixed()"),
 		"[!rcfix]" : (6, "not mr.cell_fixed()"),
+
+		# for Iskun
+		"[rmup]": (6, "mr.path_clear_up()"),
+		"[rmright]": (6, "mr.path_clear_right()"),
+		"[rmdown]": (6, "mr.path_clear_down()"),
+		"[rmleft]": (6, "mr.path_clear_left()"),
+		"[!rmup]": (6, "not mr.path_clear_up()"),
+		"[!rmright]": (6, "not mr.path_clear_right()"),
+		"[!rmdown]": (6, "not mr.path_clear_down()"),
+		"[!rmleft]": (6, "not mr.path_clear_left()"),
+
 	}
 
 	def __init__(self):
@@ -135,7 +168,7 @@ class Pikto2Py:
 			if cur_skip and (ls == 1) and (lw[0] in cmds) and (cmds[lw[0]][0] == 3):
 				# selecting another section
 				cur_section = ord(lw[0][0]) - ord('@')
-				print("Section " + str(i) + " selected.", file=sys.stderr)
+				print("Section " + str(cur_section) + " selected.", file=sys.stderr)
 				if main_section == 0:
 					main_section = cur_section
 				continue
