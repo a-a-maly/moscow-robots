@@ -18,7 +18,7 @@ class RobotData:
         self.kind = d["kind"]
         self.x = d["x"]
         self.y = d["y"]
-        self.dir = d["dir"]
+        self.dir = d.get("dir")
         self.fpos = d.get("fpos")
 
     def export(self):
