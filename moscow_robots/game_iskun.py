@@ -132,11 +132,9 @@ class GameIskun(GameRobot):
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
-        d = (4 - self.robot.dir) % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
-        t = pygame.transform.rotate(t, d * 90)
         
         bx = cx * x + cx // 10
         by = cy * y + cy // 10
