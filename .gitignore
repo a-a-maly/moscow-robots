@@ -3,6 +3,7 @@
 *.final.png
 *.final.json
 *_screen.png
+*_prog.png
 *_final_data.json
 
 
