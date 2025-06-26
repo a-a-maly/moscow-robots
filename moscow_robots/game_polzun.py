@@ -91,7 +91,7 @@ class GamePolzun(GameRobot):
         self.field.load(self.json_data["field"])
 
         self.tasks = []
-        if self.json_data["tasks"]:
+        if "tasks" in self.json_data:
             self.tasks = self.json_data["tasks"][::]
         self.ctask = ""
         clabel = self.field.cells[self.robot.y][self.robot.x].label
