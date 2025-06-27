@@ -462,10 +462,10 @@ class PEditor:
 		print(args.csize)
 		print(args.rest)
 
-		pe = PEditor(int(args.csize))
 		if not args.rest:
 			args.rest = ["a.pikto"]
 		for fn in args.rest:
+			pe = PEditor(int(args.csize))
 			pe.edit(fn)
 
 
