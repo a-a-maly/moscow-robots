@@ -37,6 +37,12 @@ class Pikto2Py:
 		"rmdown": (1, "mr.step_down()"),
 		"rmleft": (1, "mr.step_left()"),
 
+		# for Train
+		"radd": (1, "mr.add_all()"),
+		"radd1": (1, "mr.add_one()"),
+		"rdrop": (1, "mr.drop_all()"),
+		"rdrop1": (1, "mr.drop_one()"),
+
 		# subroutines
 		"@" : (3, "proc_main()"),
 		"A" : (3, "proc_A()"),
@@ -97,6 +103,12 @@ class Pikto2Py:
 		"<!rmdown>": (5, "not mr.path_clear_down()"),
 		"<!rmleft>": (5, "not mr.path_clear_left()"),
 
+		# for Train
+		"<radd>": (5, "mr.has_to_add()"),
+		"<!radd>": (5, "not mr.has_to_add()"),
+		"<rdrop>": (5, "mr.has_to_drop()"),
+		"<!rdrop>": (5, "not mr.has_to_drop()"),
+
 		# while conditionals
 		"[pit]" : (6, "(pitcher > 0)"),
 		"[!pit]" : (6, "(pitcher <= 0)"),
@@ -137,6 +149,11 @@ class Pikto2Py:
 		"[!rmdown]": (6, "not mr.path_clear_down()"),
 		"[!rmleft]": (6, "not mr.path_clear_left()"),
 
+		# for Train
+		"[radd]": (6, "mr.has_to_add()"),
+		"[!radd]": (6, "not mr.has_to_add()"),
+		"[rdrop]": (6, "mr.has_to_drop()"),
+		"[!rdrop]": (6, "not mr.has_to_drop()"),
 	}
 
 	def __init__(self):
