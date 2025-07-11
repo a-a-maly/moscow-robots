@@ -22,8 +22,8 @@ class IconsLoader:
 		"fl1-": "do_fl1_down",
 		"fl1+": "do_fl1_up",
 		"pit0": "do_pit_clear",
-		"pit++": "do_pit_inc",
-		"pit--": "do_pit_dec",
+		"pit+1": "do_pit_inc",
+		"pit-1": "do_pit_dec",
 		"mem0": "do_mem_clear",
 		"mem+p": "do_mem_add",
 		"mem-p": "do_mem_sub",
@@ -150,7 +150,7 @@ class IconsLoader:
 class PEditor:
 	robot_dict = [
 		[['(1)', 'A'], ['(2)', 'B'], ['(3)', 'C'], ['(4)', 'D'], ['(5)', 'E'], ['(6)', '.'], [], ['_', '_']],
-		[['pit0', 'mem0'], ['pit++', 'mem+p'], ['pit--', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
+		[['pit0', 'mem0'], ['pit+1', 'mem+p'], ['pit-1', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
 		[['<memeq>', '[memeq]'], ['<!memeq>', '[!memeq]'], ['<memlt>', '[memlt]'], ['<memgt>', '[memgt]'], ['<!memlt>', '[!memlt]'], ['<!memgt>', '[!memgt]'], ['', ''], ['', '']],
 		[['fl0+', 'fl1+'], ['fl0-', 'fl1-'], ['<fl0>', '<fl1>'], ['<!fl0>', '<!fl1>'], ['[fl0]', '[fl1]'], ['[!fl0]', '[!fl1]'], ['', ''], ['', '']],
 		[['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclr>', '<rfwd>'], ['<!rclr>', '<!rfwd>'], ['[rclr]', '[rfwd]'], ['[!rclr]', '[!rfwd]']],
