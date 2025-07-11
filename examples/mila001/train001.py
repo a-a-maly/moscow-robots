@@ -1,11 +1,11 @@
 import moscow_robots as mrs
 
 def proc_main():
-    pass
-    pass
-    mr.tow()
-    mr.tow()
-    mr.tow()
+    while mr.has_to_add():
+        mr.add_one()
+        mr.tow()
+        mr.tow()
+        mr.tow()
     pass
 
 def proc_A():
@@ -20,6 +20,6 @@ def proc_C():
 def proc_D():
     pass
 
-with mrs.GameVertun("a.json") as mr:
+with mrs.GameTrain("train001a.json") as mr:
     proc_main()
 
