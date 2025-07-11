@@ -181,6 +181,7 @@ class GameTrain(GameRobot):
     def task_complete(self):
         if not self.robot_alive:
             return False
+        #print(self.robot.fpos, self.robot.x, self.robot.y)
         if self.robot.fpos is not None:
             if self.robot.x != self.robot.fpos[0]:
                 return False
@@ -502,7 +503,7 @@ class GameTrain(GameRobot):
         ans = self._turn_left()
         self.finish_step(True, ans)
 
-    def has_to_drop():
+    def has_to_drop(self):
         ans = self._has_to_drop()
         self.finish_step(False, True)
         return ans
@@ -515,8 +516,8 @@ class GameTrain(GameRobot):
         self._drop_all()
         self.finish_step(True, True)
 
-    def has_to_add():
-        ans = self._has_to_add()
+    def has_to_add(self):
+        ans = self._has_to_add()[0] != 0
         self.finish_step(False, True)
         return ans
 
