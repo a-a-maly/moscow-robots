@@ -66,8 +66,8 @@ class IconsLoader:
 		"<memgt>": "if_mem_gt",
 		"<!memgt>": "if_mem_le",
 
-		"<rclr>": "if_way_clean",
-		"<!rclr>": "if_not_way_clean",
+		"<rclear>": "if_way_clean",
+		"<!rclear>": "if_not_way_clean",
 		"<rfwd>": "if_can_step",
 		"<!rfwd>": "if_not_can_step",
 
@@ -105,8 +105,8 @@ class IconsLoader:
 		"[memgt]": "while_mem_gt",
 		"[!memgt]": "while_mem_le",
 
-		"[rclr]": "while_way_clean",
-		"[!rclr]": "while_not_way_clean",
+		"[rclear]": "while_way_clean",
+		"[!rclear]": "while_not_way_clean",
 		"[rfwd]": "while_can_step",
 		"[!rfwd]": "while_not_can_step",
 
@@ -153,7 +153,7 @@ class PEditor:
 		[['pit0', 'mem0'], ['pit+1', 'mem+p'], ['pit-1', 'mem-p'], ['(pit)', '(mem)'], ['<pit>', '[pit]'], ['<!pit>', '[!pit]'], ['', ''], ['', '']],
 		[['<memeq>', '[memeq]'], ['<!memeq>', '[!memeq]'], ['<memlt>', '[memlt]'], ['<memgt>', '[memgt]'], ['<!memlt>', '[!memlt]'], ['<!memgt>', '[!memgt]'], ['', ''], ['', '']],
 		[['fl0+', 'fl1+'], ['fl0-', 'fl1-'], ['<fl0>', '<fl1>'], ['<!fl0>', '<!fl1>'], ['[fl0]', '[fl1]'], ['[!fl0]', '[!fl1]'], ['', ''], ['', '']],
-		[['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclr>', '<rfwd>'], ['<!rclr>', '<!rfwd>'], ['[rclr]', '[rfwd]'], ['[!rclr]', '[!rfwd]']],
+		[['rleft', 'rleft'], ['rright', 'rright'], ['rfwd', 'rtow'], ['rfix', ''], ['<rclear>', '<rfwd>'], ['<!rclear>', '<!rfwd>'], ['[rclear]', '[rfwd]'], ['[!rclear]', '[!rfwd]']],
 		[['<rcnor>', '[rcnor]'], ['<!rcnor>', '[!rcnor]'], ['<rcbro>', '[rcbro]'], ['<!rcbro>', '[!rcbro]'], ['<rcfix>', '[rcfix]'], ['<!rcfix>', '[!rcfix]'], ['', ''], ['', '']],
 		[['rmup', 'rmup'], ['rmright', 'rmright'], ['rmdown', 'rmdown'], ['rmleft', 'rmleft'], ['', ''], ['', ''], ['', ''], ['', '']],
 		[['<rmup>', '[rmup]'], ['<!rmup>', '[!rmup]'], ['<rmright>', '[rmright]'], ['<!rmright>', '[!rmright]'], ['<rmdown>', '[rmdown]'], ['<!rmdown>', '[!rmdown]'], ['<rmleft>', '[rmleft]'], ['<!rmleft>', '[!rmleft]']],
