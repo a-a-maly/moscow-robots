@@ -1,5 +1,7 @@
 .DS_Store
 .*.swp
+*.start.png
+*.start.json
 *.final.png
 *.final.json
 *_screen.png
