@@ -21,7 +21,7 @@ def proc_C():
 def proc_D():
     pass
 
-with mrs.GameVertun("vertun-003.json") as mr:
+with mrs.GameVertun("vertun-003h.json") as mr:
     pass
     proc_main()
 
