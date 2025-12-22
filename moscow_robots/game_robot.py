@@ -105,7 +105,8 @@ class GameRobot:
         self.store_state(self.base_name + ".final.json")
         ok = self.task_complete()
         print("ok:", ok)
-        self.game_mode = 2 # step by step
+        if self.game_mode == 1:
+            self.game_mode = 2 # step by step
         self.finish_step(True, False, False)
         pygame.quit()
         if not self.robot_alive:
@@ -148,21 +149,31 @@ class GameRobot:
         while True:
             pygame.event.pump()
             for ev in pygame.event.get():
+                #print(ev.type)
                 if ev.type == pygame.WINDOWSHOWN:
                     pygame.display.flip()
                     continue
                 if ev.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit("Closed by user ")
+                    print("Quitting")
+                    self.game_mode = 3
                     flag = False
-                    continue
+                    sys.exit("Closed by user ")
+
                 if ev.type == pygame.KEYDOWN:
+                    if ev.key == pygame.K_ESCAPE:
+                        self.game_mode = 3
+                        flag = False
+                        print("Escaping")
+                        sys.exit("Escaped by user")
+
                     if ev.key == pygame.K_TAB:
                         self.game_mode = 1
                         flag = False
+
                     elif ev.key == pygame.K_SPACE:
                         self.game_mode = 2
                         flag = False
+
                     elif ev.key == pygame.K_0:
                         self.game_speed = 50
                     elif ev.key == pygame.K_1:
