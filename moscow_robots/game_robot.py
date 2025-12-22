@@ -61,13 +61,14 @@ class GameRobot:
         self.robot = RobotData()
         self.robot.load(self.json_data["robot"])
         self.robot_kind = self.robot.kind
+        #print(self.robot_class_kind, self.robot_kind)
         assert self.robot_class_kind == self.robot_kind
 
         fdata = self.json_data["field"]
         self.field = None
         self.fsize = (fdata["sx"], fdata["sy"])
 
-        fsize_minx, fsize_miny = 3, 2
+        fsize_minx, fsize_miny = 2, 2
         fsize_x = max(fsize_minx, self.fsize[0])
         fsize_y = max(fsize_miny, self.fsize[1])
 
