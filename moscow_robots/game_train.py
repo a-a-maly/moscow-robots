@@ -1,55 +1,11 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
-import json
 from moscow_robots.data import get_image
-from moscow_robots.game_vertun import RobotData
-import sys
-
-_direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-
-def _next_pos(pos, d):
-    x, y = pos
-    dx, dy = _direction_vectors[d % 4]
-    return (x + dx, y + dy)
-
-def _prev_pos(pos, d):
-    x, y = pos
-    dx, dy = _direction_vectors[d % 4]
-    return (x - dx, y - dy)
-
-
-class CellData:
-    def __init__(self):
-        self.block = 0
-        self.bdest = 0
-        self.gear = 0
-
-    def __str__(self):
-        res = ""
-        if self.block == 1:
-            res += "x"
-        elif self.block == 2:
-            res += "o"
-        if self.bdest & 1:
-            res += "X"
-        if self.bdest & 2:
-            res += "O"
-        return res
-
-    def decode(self, s):
-        self.block = 0
-        self.bdest = 0
-        for i in range(len(s)):
-            c = s[i]
-            if c == 'x':
-                assert self.block == 0
-                self.block = 1
-            elif c == 'o':
-                assert self.block == 0
-                self.block = 2
-            elif c == 'X':
-                self.bdest |= 1
-            elif c == 'O':
-                self.bdest |= 2
+from moscow_robots.game_robot import GameRobot
+from moscow_robots.game_dvigun import DvigunCellData as CellData
+from moscow_robots.game_dvigun import DvigunFieldData
+from moscow_robots.game_dvigun import DvigunTextures
 
 
 class GearData:
@@ -68,34 +24,14 @@ class GearData:
         return res
 
 
-class FieldData:
+class FieldData(DvigunFieldData):
     def __init__(self):
-        self.sx = 1
-        self.sy = 1
-        self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
-        self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
-        self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
+        DvigunFieldData.__init__(self)
         self.gears = []
 
 
-    def load_fences(self, d):
-        self.hfences = [[0 for x in range(self.sx)] for y in range(self.sy - 1)]
-        self.vfences = [[0 for x in range(self.sx - 1)] for y in range(self.sy)]
-        vfences = d.get("vfences")
-        if vfences:
-            for y in range(min(sy, len(vfences))):
-                for x in range(min(sx - 1, len(vfences[y]))):
-                    self.vfences[y][x] = (vfences[y][x] not in ' 0')
-        hfences = d.get("hfences")
-        if hfences:
-            for y in range(min(sy - 1, len(hfences))):
-                for x in range(min(sx, len(hfences[y]))):
-                    self.hfences[y][x] = (hfences[y][x] not in ' 0')
-
     def load_gears(self, d, r):
-        sx = self.sx
-        sy = self.sy
-
+        sx, sy = self.sx, self.sy
         ngears = 0
         gmap = [[None for x in range(self.sx)] for y in range(self.sy)] 
         gears = d.get("gears")
@@ -116,7 +52,7 @@ class FieldData:
                     ci = int(ci)
                     assert 0 <= ci < 4
                     assert self._can_pass((x, y), ci)
-                    dx, dy = _direction_vectors[ci]
+                    dx, dy = GameRobot.direction_vectors[ci]
                     x += dx
                     y += dy
                     assert 0 <= x < sx
@@ -153,35 +89,6 @@ class FieldData:
             # robot should not see its first load
             assert (len(g0.dirs) == 0) or (r.dir != g0.dirs[0])
 
-    def dump_gears(self):
-        gs = self.gears
-        for i in range(len(gs)):
-            print(i, gs[i].edges, gs[i].dirs)
-
-
-    def load(self, d, r):
-        self.sx = d["sx"]
-        self.sy = d["sy"]
-        self.cells = [[CellData() for x in range(self.sx)] for i in range(self.sy)]
-        cells = d["cells"]
-        for y in range(self.sy):
-            for x in range(self.sx):
-                self.cells[y][x].decode(cells[y][x])
-
-        assert self.cells[r.y][r.x].block == 0
-
-        self.load_fences(d)
-        self.load_gears(d, r)
-
-    def export_cells(self):
-        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
-        return cs
-
-    def export_fences(self):
-        hfs = ["".join([" -"[self.hfences[y][x]] for x in range(self.sx)]) for y in range(self.sy - 1)]
-        vfs = ["".join([" |"[self.vfences[y][x]] for x in range(self.sx - 1)]) for y in range(self.sy)]
-        return hfs, vfs
-
     def export_gears(self):
         res = list()
         for g in self.gears:
@@ -189,23 +96,23 @@ class FieldData:
                 res.append(g.export())
         return res
 
+    def load(self, d, r):
+        DvigunFieldData.load(self, d)
+        assert self.cells[r.y][r.x].block == 0
+        self.load_gears(d, r)
+
     def export(self):
-        res = dict()
-        res["sx"] = self.sx
-        res["sy"] = self.sy
-        cs = self.export_cells()
-        if cs:
-            res["cells"] = cs
-        hfs, vfs = self.export_fences()
-        if hfs:
-            res["hfences"] = hfs
-        if vfs:
-            res["vfences"] = vfs
+        res = DvigunFieldData.export(self)
         gs = self.export_gears()
         if gs:
             res["gears"] = gs
         return res
 
+
+    def dump_gears(self):
+        gs = self.gears
+        for i in range(len(gs)):
+            print(i, gs[i].edges, gs[i].dirs)
 
     def _can_pass(self, pos, d):
         sx = self.sx
@@ -215,7 +122,7 @@ class FieldData:
             return False
         if not (0 <= y0 < sy):
             return False
-        dx, dy = _direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         x1 = x0 + dx
         y1 = y0 + dy
         if not (0 <= x1 < sx):
@@ -233,12 +140,14 @@ class FieldData:
         if not self._can_pass(pos, d):
             return False
         x, y = pos
-        dx, dy = _direction_vectors[d % 4]
+        dx, dy = GameRobot.direction_vectors[d % 4]
         return self.cells[y + dy][x + dx].block == 0
 
 
-class Textures:
+class Textures(DvigunTextures):
     def __init__(self, robot_kind, csize):
+        DvigunTextures.__init__(self, robot_kind, csize)
+
         t = get_image("train").convert_alpha()
         t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
         self.robot = pygame.transform.rotate(t, 90)
@@ -247,143 +156,32 @@ class Textures:
         t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
         self.robot_dead = pygame.transform.rotate(t, 90)
 
-        t = get_image("robot_dest").convert_alpha()
-        self.robot_dest = pygame.transform.scale(t, csize)
-
-        self.fields = []
-        t = get_image("field_normal_other").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_square_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_circle_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-        t = get_image("block_any_dest").convert_alpha()
-        self.fields.append(pygame.transform.scale(t, csize))
-
-        self.blocks = [None]
-        t = get_image("block_square").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] * 3 // 5)))
-        t = get_image("block_circle").convert_alpha()
-        self.blocks.append(pygame.transform.scale(t, (csize[0] * 2 // 3, csize[1] * 2 // 3)))
-
-        t = get_image("wall_hor").convert_alpha()
-        self.hwall = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] // 10))
-        t = get_image("wall_vert").convert_alpha()
-        self.vwall = pygame.transform.scale(t, (csize[0] // 10, csize[1] * 4 // 5))
-
         t = get_image("scepka").convert_alpha()
         t = pygame.transform.scale(t, (csize[0] * 3 // 5, csize[1] // 5))
         self.gear = pygame.transform.rotate(t, 90)
 
 
-class GameTrain:
+class GameTrain(GameRobot):
+    robot_class_kind = 5
 
     def __init__(self, json_name):
-
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
+        GameRobot.__init__(self, json_name)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"], self.robot)
-        self.fsize = (self.field.sx, self.field.sy)
-        #self.field.dump_gears()
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-        self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
-
-    def export(self):
-        res = dict()
-        res["alive"] = self.robot_alive
-        res["complete"] = self.task_complete()
-        res["robot"] = self.robot.export()
-        res["field"] = self.field.export()
-        return res
-
-    def store_state(self, fname = None):
-        state = self.export()
-        if fname is None:
-            fname = self.base_name + ".final.json"
-        with open(fname, "w") as file:
-            json.dump(state, file, indent='\t')
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        self.store_state(self.base_name + ".final.json")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        if not self.robot_alive:
-            return True
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        #self.field.dump_gears()
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_blocks()
-            self.redraw_robot()
-            self.redraw_gears()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = (self.game_mode == 2)
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
-
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_blocks()
+        self.redraw_robot()
+        self.redraw_gears()
 
     def task_complete(self):
         if not self.robot_alive:
             return False
+        #print(self.robot.fpos, self.robot.x, self.robot.y)
         if self.robot.fpos is not None:
             if self.robot.x != self.robot.fpos[0]:
                 return False
@@ -470,7 +268,7 @@ class GameTrain:
         for g in self.field.gears:
             x, y = g.edges[0]
             for d in g.dirs:
-                dx, dy = _direction_vectors[d]
+                dx, dy = self.direction_vectors[d]
                 t = pygame.transform.rotate(self.textures.gear, -90 * d)
                 ax = (cx * (1 + dx) - t.get_width()) // 2
                 ay = (cx * (1 + dy) - t.get_height()) // 2
@@ -485,7 +283,7 @@ class GameTrain:
         rx = self.robot.x
         ry = self.robot.y
         rd = self.robot.dir % 4
-        rdx, rdy = _direction_vectors[rd]
+        rdx, rdy = self.direction_vectors[rd]
 
         g0 = self.field.gears[0]
         #print((rx, ry), g0.edges[0])
@@ -498,7 +296,7 @@ class GameTrain:
         x, y = rx, ry
         for i in range(len(g0.dirs)):
             od = g0.dirs[i]
-            ox, oy = _next_pos((x, y), od)
+            ox, oy = GameRobot.next_pos((x, y), od)
             self.field.cells[y][x].block = self.field.cells[oy][ox].block
             #self.field.cells[oy][ox].block = 0
             g0.dirs[i] = d
@@ -536,7 +334,7 @@ class GameTrain:
             self.screen.blit(ti, (bx + dbx, by + dby))
             self.redraw_gears()
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
 
         d = (d + dd) % 4
         self.robot.dir = d
@@ -560,7 +358,7 @@ class GameTrain:
         g1 = GearData()
         g1.edges[0] = g0.edges[1]
         g1.edges[1] = g0.edges[1]
-        g0.edges[1] = _prev_pos(g0.edges[1], g0.dirs[-1])
+        g0.edges[1] = GameRobot.prev_pos(g0.edges[1], g0.dirs[-1])
         g0.dirs.pop()
         self.field.gears.append(g1)
 
@@ -582,7 +380,7 @@ class GameTrain:
             return False
 
         g1 = GearData()
-        g1.edges[0] = _next_pos(g0.edges[0], g0.dirs[0])
+        g1.edges[0] = GameRobot.next_pos(g0.edges[0], g0.dirs[0])
         g1.edges[1] = g0.edges[1]
         g1.dirs[:] = g0.dirs[1:]
         g0.edges[1] = g0.edges[0]
@@ -599,14 +397,12 @@ class GameTrain:
         (x, y) = g0.edges[1]
         if l0 > 0:
             d = g0.dirs[-1]
-        #print(l0, (x, y), d)
 
         for dd in [0, -1, 1]:
             d1 = (d + dd) % 4
             if not self.field._can_pass((x, y), d1):
                 continue
-            (x1, y1) = _next_pos((x, y), d1)
-            #print(dd, d1, (x1, y1))
+            (x1, y1) = GameRobot.next_pos((x, y), d1)
 
             for i in range(1, len(gs)):
                 #print(i)
@@ -630,7 +426,7 @@ class GameTrain:
         g1 = gs[h]
         if eh:
             g1.reverse()
-        assert _next_pos(g0.edges[1], dh) == g1.edges[0] 
+        assert GameRobot.next_pos(g0.edges[1], dh) == g1.edges[0] 
         g0.edges[1] = g1.edges[1]
         g0.dirs.append(dh)
         g0.dirs.extend(g1.dirs)
@@ -707,7 +503,7 @@ class GameTrain:
         ans = self._turn_left()
         self.finish_step(True, ans)
 
-    def has_to_drop():
+    def has_to_drop(self):
         ans = self._has_to_drop()
         self.finish_step(False, True)
         return ans
@@ -720,8 +516,8 @@ class GameTrain:
         self._drop_all()
         self.finish_step(True, True)
 
-    def has_to_add():
-        ans = self._has_to_add()
+    def has_to_add(self):
+        ans = self._has_to_add()[0] != 0
         self.finish_step(False, True)
         return ans
 

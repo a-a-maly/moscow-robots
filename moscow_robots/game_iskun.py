@@ -1,8 +1,9 @@
-import pygame
-import json
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import pygame, pygame.freetype
 from moscow_robots.data import get_image
-from moscow_robots.game_vertun import RobotData, CellData, FieldData
-import sys
+from moscow_robots.game_robot import GameRobot
+from moscow_robots.game_vertun import FieldData
 
 
 class Textures:
@@ -36,58 +37,21 @@ class Textures:
         self.msg_lose = pygame.transform.scale(t, (3 * csize[0], 3 * csize[1] // 2))
 
 
-class GameIskun:
+class GameIskun(GameRobot):
+    robot_class_kind = 2
 
     def __init__(self, json_name):
-        self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
+        GameRobot.__init__(self, json_name)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"])
-        self.fsize = (self.field.sx, self.field.sy)
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-
-        self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
-        self.background = None
 
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        if not self.robot_alive:
-            return True
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_robot()
 
     def task_complete(self):
         if not self.robot_alive:
@@ -145,22 +109,37 @@ class GameIskun:
             by = fpos[1] * cy
             self.screen.blit(t, (bx, by))
 
-        self.background = self.screen.copy()
+    def draw_temp(self):
+        if not self.robot_alive:
+            return
+        x = self.robot.x
+        y = self.robot.y
+        txt = str(self.field.cells[y][x].t)
+        if len(txt) > 4:
+            txt = "####"
+        cx = self.csize[0]
+        cy = self.csize[1]
+        ch = cy // 8
+        font = pygame.freetype.SysFont(None, ch)
+        r = font.get_rect(txt)
+        
+        bx = cx * x + (cx - r.width) // 2
+        by = cy * y + (cy - r.height) // 2
+        font.render_to(self.screen, (bx, by), txt, pygame.Color('purple'))
 
     def redraw_robot(self):
         cx = self.csize[0]
         cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
-        d = (4 - self.robot.dir) % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
-        t = pygame.transform.rotate(t, d * 90)
         
         bx = cx * x + cx // 10
         by = cy * y + cy // 10
         self.screen.blit(t, (bx, by))
+        self.draw_temp()
 
     def move_robot(self):
         cx = self.csize[0]
@@ -169,7 +148,6 @@ class GameIskun:
         y = self.robot.y
         d = self.robot.dir % 4
         dx, dy = self.direction_vectors[d]
-        dx, dy = dx * cx, dy * cy
 
         t = self.textures.robot
         t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
@@ -177,52 +155,22 @@ class GameIskun:
         self.redraw_field()
         scopy = self.screen.copy()
 
-        m = 4
-        for i in range(m + 1):
+        m = 8
+        for i in range(1, m + 1):
             self.screen.blit(scopy, (0, 0))
-            dxi, dyi = dx * i // m, dy * i // m
+            dxi, dyi = dx * cx * i // m, dy * cy * i // m
             bx = cx * x + cx // 10 + dxi
             by = cy * y + cy // 10 + dyi
             self.screen.blit(t, (bx, by))
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            if i < m:
+                pygame.time.wait(self.game_speed // m)
 
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_robot()
+        self.robot.x += dx
+        self.robot.y += dy
+        self.draw_temp()
         pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
+        pygame.time.wait(self.game_speed // m)
 
 
     def _fix_cell(self):
@@ -259,10 +207,6 @@ class GameIskun:
             self.robot_alive = False
             return True
         self.move_robot()
-        d = self.robot.dir % 4
-        dx, dy = self.direction_vectors[d]
-        self.robot.x += dx
-        self.robot.y += dy
         return False
 
     def get_temp(self):

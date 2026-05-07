@@ -1,0 +1,10 @@
+C rright A
+
+A
+(3) B rright
+
+B
+(pit) rfwd rfix
+
+C
+[!rcfix] rfix rfwd pit+1

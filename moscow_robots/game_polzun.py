@@ -1,23 +1,8 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
-import json
 from moscow_robots.data import get_image
-import sys
-
-
-class RobotData:
-    def __init__(self):
-        self.kind = 0
-        self.x = 0
-        self.y = 0
-        self.dir = 0
-        self.fpos = None
-
-    def load(self, d):
-        self.kind = d["kind"]
-        self.x = d["x"]
-        self.y = d["y"]
-        self.dir = d["dir"]
-        self.fpos = d.get("fpos")
+from moscow_robots.game_robot import GameRobot
 
 
 class CellData:
@@ -42,18 +27,37 @@ class FieldData:
         self.sy = 1
         self.cells = [[CellData() for x in range(self.sx)] for y in range(self.sy)]
 
-    def load(self, d):
-        sx = d["sx"]
-        sy = d["sy"]
-        self.sx = sx
-        self.sy = sy
+    def load_cells(self, d):
+        sx = self.sx
+        sy = self.sy
         self.cells = [[CellData() for x in range(sx)] for i in range(sy)]
         cells = d["cells"]
         for y in range(sy):
             for x in range(sx):
                 self.cells[y][x].decode(cells[y][x])
 
+
+    def export_cells(self):
+        cs = [[str(self.cells[y][x]) for x in range(self.sx)] for y in range(self.sy)]
+        return cs
+
+    def load(self, d):
+        self.sx = d["sx"]
+        self.sy = d["sy"]
+        self.load_cells(d)
+
+    def export(self):
+        res = dict()
+        res["sx"] = self.sx
+        res["sy"] = self.sy
+        cs = self.export_cells()
+        if cs:
+            res["cells"] = cs
+        return res
+
+
 class Textures:
+
     def __init__(self, robot_kind, csize):
         t = get_image("polzun_empty").convert_alpha()
         t = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
@@ -77,105 +81,29 @@ class Textures:
             self.cells[str(i)] = pygame.transform.scale(t, rsize)
 
 
-class GamePolzun:
+class GamePolzun(GameRobot):
+    robot_class_kind = 6
 
     def __init__(self, json_name):
-        self.direction_vectors = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-
-        self.base_name = "".join(json_name.split(".")[:-1])
-        print("base_name", self.base_name)
-        with open(json_name, "r") as json_file:
-            self.json_data = json.load(json_file)
-
-        self.robot = RobotData()
-        self.robot.load(self.json_data["robot"])
-        self.robot_kind = self.robot.kind
-        rx = self.robot.x
-        ry = self.robot.y
+        GameRobot.__init__(self, json_name)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"])
-        self.fsize = (self.field.sx, self.field.sy)
 
         self.tasks = []
-        if self.json_data["tasks"]:
+        if "tasks" in self.json_data:
             self.tasks = self.json_data["tasks"][::]
         self.ctask = ""
-        clabel = self.field.cells[ry][rx].label
+        clabel = self.field.cells[self.robot.y][self.robot.x].label
         if clabel in "0123456789":
             self.ctask += clabel;
 
-        ssize = (800, 800)
-        csize_x = ssize[0] // max(3, self.fsize[0])
-        csize_y = ssize[1] // max(2, self.fsize[1])
-        csize = min(csize_x, csize_y)
-        self.csize = (csize, csize)
-        self.ssize = (self.csize[0] * max(3, self.fsize[0]), self.csize[1] * max(2, self.fsize[1]))    
-
-        pygame.display.init()
-        pygame.event.set_blocked(pygame.MOUSEMOTION)
-        pygame.event.set_blocked(pygame.WINDOWMOVED)
-
-        self.screen = pygame.display.set_mode(self.ssize)
         self.textures = Textures(self.robot_kind, self.csize)
 
-        self.speed = 100
-        self.game_mode = 0
-        self.robot_alive = True
-        self.background = None
 
-
-    def __enter__(self):
-        self.robot_alive = True
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False)
-        return self
-
-    def __exit__(self, t, v, tb):
-        pygame.image.save(self.screen, self.base_name + ".final.png")
-        ok = self.task_complete()
-        print("ok:", ok)
-        self.game_mode = 2 # step by step
-        self.finish_step(True, False, False)
-        if not self.robot_alive:
-            return True
-
-    def finish_step(self, need_redraw=True, need_wait=True, need_raise=True):
-        if need_redraw or not self.robot_alive:
-            self.redraw_field()
-            self.redraw_robot()
-        pygame.display.update()
-
-        if need_wait:
-            pygame.time.wait(self.speed)
-
-        flag = ((self.game_mode == 2) or (not self.robot_alive)) and need_raise
-        while True:
-            pygame.event.pump()
-            for ev in pygame.event.get():
-                if ev.type == pygame.WINDOWSHOWN:
-                    pygame.display.flip()
-                    continue
-                if ev.type == pygame.QUIT:
-                    sys.exit("Closed by user ")
-                    flag = False
-                    continue
-                if ev.type == pygame.KEYDOWN:
-                    if ev.key == pygame.K_TAB:
-                        flag = False
-                        self.game_mode = 1
-                    elif ev.key == pygame.K_SPACE:
-                        flag = False
-                        self.game_mode = 2
-                    continue
-
-            if not flag:
-                break
-            pygame.time.wait(10)
-
-        if need_raise and not self.robot_alive:
-            raise RuntimeError("Robot is dead")
-
+    def redraw_all(self):
+        self.redraw_field()
+        self.redraw_robot()
 
     def task_complete(self):
         if not self.robot_alive:
@@ -193,6 +121,7 @@ class GamePolzun:
             if t == self.ctask:
                 return True
         return False
+
 
     def redraw_field(self):
         self.screen.fill((255, 0, 255)) 
@@ -218,7 +147,6 @@ class GamePolzun:
             by = fpos[1] * cy + (cy - tsize[1]) // 2
             self.screen.blit(t, (bx, by))
 
-        self.background = self.screen.copy()
 
     def redraw_robot(self):
         cx = self.csize[0]
@@ -258,7 +186,7 @@ class GamePolzun:
             dxi, dyi = (cx * dx * i + m // 2) // m, (cy * dy * i + m // 2) // m
             self.screen.blit(t, (bx + dxi, by + dyi))
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
         x += dx
         y += dy
         self.robot.x = x
@@ -289,7 +217,7 @@ class GamePolzun:
             dby = (cy - tsize[1]) // 2
             self.screen.blit(ti, (cx * x + dbx, cy * y + dby))
             pygame.display.update()
-            pygame.time.wait(self.speed // (m + 1))
+            pygame.time.wait(self.game_speed // (m + 1))
         self.robot.dir = (d + dd) % 4
 
     def _path_clear(self):
