@@ -73,10 +73,14 @@ class GameRobot:
         fsize_y = max(fsize_miny, self.fsize[1])
 
         if csize is None:
-            ssize = (800, 800)
+            # Инициализируем дисплей, чтобы получить размер экрана
+            pygame.display.init()
+            info = pygame.display.Info()
+            ssize = (info.current_w * 3 // 4, info.current_h * 3 // 4)
             csize_x = ssize[0] // fsize_x
-            csize_y = ssize[1] // fsize_y
+            csize_y = ssize[1] // (fsize_y * 2)
             csize = min(csize_x, csize_y)
+            csize = max(csize, 120)  # минимальный размер клетки
 
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * fsize_x, self.csize[1] * fsize_y)    

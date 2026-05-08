@@ -1,0 +1,27 @@
+import moscow_robots as mr
+
+with mr.GameDvigun("dvigun-003.json") as  r:
+
+    r.step_forward()
+    r.step_forward()
+    r.step_forward()
+    r.turn_left()
+    r.step_forward()
+    r.step_forward()
+    r.turn_left()
+    r.step_forward()
+    r.step_forward()
+    r.step_forward()
+    r.turn_right()
+    r.step_forward()
+    r.step_forward()
+    r.turn_right()
+    r.step_forward()
+    r.step_forward()
+    r.turn_right()
+    r.step_forward()
+    r.step_forward()
+    r.turn_right()
+    r.step_forward()
+    r.turn_left()
+    r.step_forward()
