@@ -219,8 +219,13 @@ class GameDvigun(GameRobot):
 
         return bx, by
 
-    def _z_key(self, x, y):
-        return (x + y, y, x)
+    def _z_key(self, obj_type, x, y, moving_shift=False):
+        z = x + y
+
+        if moving_shift and (obj_type == "robot" or obj_type == "block"):
+            z += 0.15
+
+        return (z, y, x)
 
     def task_complete(self):
         if not self.robot_alive:
@@ -385,8 +390,10 @@ class GameDvigun(GameRobot):
                 )
             )
 
-    def _draw_objects_sorted(self, objects, skip_robot=False):
-        objects.sort(key=lambda obj: self._z_key(obj[1], obj[2]))
+    def _draw_objects_sorted(self, objects, moving_shift=False, skip_robot=False):
+        objects.sort(
+            key=lambda obj: self._z_key(obj[0], obj[1], obj[2], moving_shift)
+        )
 
         for obj_type, x, y, data in objects:
             if skip_robot and obj_type == 'robot':
@@ -472,7 +479,11 @@ class GameDvigun(GameRobot):
                     if self.field.hfences[wy][wx]:
                         anim_objects.append(('hwall', wx, wy + 0.5, None))
 
-            self._draw_objects_sorted(anim_objects)
+            moving_shift = False
+            if dy > 0 or dx > 0:
+                moving_shift = True
+
+            self._draw_objects_sorted(anim_objects, moving_shift)
 
             pygame.display.update()
 
@@ -517,7 +528,7 @@ class GameDvigun(GameRobot):
 
             anim_objects.append(('robot', x, y, idx))
 
-            anim_objects.sort(key=lambda obj: self._z_key(obj[1], obj[2]))
+            anim_objects.sort(key=lambda obj: self._z_key(obj[0], obj[1], obj[2]))
 
             for obj_type, ox, oy, data in anim_objects:
                 if obj_type == 'robot':
