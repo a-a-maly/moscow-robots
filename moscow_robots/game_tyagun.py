@@ -16,19 +16,19 @@ class Textures(DvigunTextures):
         self.robot = []
         for i in range(4):
             t = get_image("tyagun" + str(i)).convert_alpha()
-            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            t = pygame.transform.scale(t, (csize[0] * 0.9, csize[1] * 0.8))
             self.robot.append(t)
 
         self.robot_turn = []
         for i in range(16):
             t = get_image("tyagun_turn" + str(i)).convert_alpha()
-            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            t = pygame.transform.scale(t, (csize[0] * 0.9, csize[1] * 0.8))
             self.robot_turn.append(t)
 
         self.robot_dead = []
         for i in range(4):
             t = get_image("tyagun_dead" + str(i)).convert_alpha()
-            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            t = pygame.transform.scale(t, (csize[0] * 0.9, csize[1] * 0.8))
             self.robot_dead.append(t)
 
 
@@ -193,7 +193,7 @@ class GameTyagun(GameRobot):
 
             bx, by = self.to_iso(x, y)
 
-            by -= self.csize[1] // 6
+            by -= self.csize[1] // 5
 
             self.screen.blit(
                 t,
