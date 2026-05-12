@@ -61,7 +61,6 @@ class GameRobot:
         self.robot = RobotData()
         self.robot.load(self.json_data["robot"])
         self.robot_kind = self.robot.kind
-        #print(self.robot_class_kind, self.robot_kind)
         assert self.robot_class_kind == self.robot_kind
 
         fdata = self.json_data["field"]
@@ -73,14 +72,10 @@ class GameRobot:
         fsize_y = max(fsize_miny, self.fsize[1])
 
         if csize is None:
-            # Инициализируем дисплей, чтобы получить размер экрана
-            pygame.display.init()
-            info = pygame.display.Info()
-            ssize = (info.current_w * 3 // 4, info.current_h * 3 // 4)
+            ssize = (800, 800)
             csize_x = ssize[0] // fsize_x
-            csize_y = ssize[1] // (fsize_y * 2)
+            csize_y = ssize[1] // fsize_y
             csize = min(csize_x, csize_y)
-            csize = max(csize, 120)  # минимальный размер клетки
 
         self.csize = (csize, csize)
         self.ssize = (self.csize[0] * fsize_x, self.csize[1] * fsize_y)    

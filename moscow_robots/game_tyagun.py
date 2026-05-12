@@ -41,33 +41,45 @@ class GameTyagun(GameRobot):
         self.field = FieldData()
         self.field.load(self.json_data["field"])
 
-        self.textures = Textures(self.robot_kind, self.csize)
         self._resize_screen_for_iso()
+        self.textures = Textures(self.robot_kind, self.csize)
 
     def _resize_screen_for_iso(self):
         cx = self.csize[0]
         cy = self.csize[1]
         sx = self.field.sx
         sy = self.field.sy
+        
+        min_size = 1600  
+
+        cx_needed = int(min_size * 2 / (sx + sy))
+        cy_needed = int(min_size * 4 / (sx + sy))
+        target_cell = min(cx_needed, cy_needed)
+
+        target_cell = max(64, min(128, target_cell))
+
+        if target_cell % 2:
+            target_cell += 1
+        
+        self.csize = (target_cell, target_cell)
+        cx = cy = target_cell
+        
         min_bx, max_bx = float('inf'), float('-inf')
         min_by, max_by = float('inf'), float('-inf')
-        for y in range(-1, sy + 1):
-            for x in range(-1, sx + 1):
+        
+        for y in range(sy):
+            for x in range(sx):
                 bx = (x - y) * (cx // 2)
                 by = (x + y) * (cy // 4)
                 min_bx = min(min_bx, bx)
                 max_bx = max(max_bx, bx)
                 min_by = min(min_by, by)
                 max_by = max(max_by, by)
-        screen_w = int(max_bx - min_bx)
-        screen_h = int(max_by - min_by + cy // 2)
         
-        info = pygame.display.Info()
-        min_w = info.current_w * 4 // 5
-        min_h = info.current_h * 4 // 5
-        screen_w = max(screen_w, min_w)
-        screen_h = max(screen_h, min_h)
+        screen_w = int(max_bx - min_bx + cx * 2)
+        screen_h = int(max_by - min_by + cy * 2 / math.sqrt(2))
         
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.screen = pygame.display.set_mode((screen_w, screen_h))
         self._iso_offset_x = screen_w // 2 - (min_bx + max_bx) / 2
         self._iso_offset_y = screen_h // 2 - (min_by + max_by) / 2
