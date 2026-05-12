@@ -554,7 +554,6 @@ class GameDvigun(GameRobot):
                     self._draw_object(obj_type, ox, oy, data)
 
             pygame.display.update()
-
             pygame.time.wait(self.game_speed // (m + 1))
 
     def _can_pass(self, pos, d):

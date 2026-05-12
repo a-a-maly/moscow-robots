@@ -6,15 +6,30 @@ from moscow_robots.game_robot import GameRobot
 from moscow_robots.game_dvigun import DvigunCellData as CellData
 from moscow_robots.game_dvigun import DvigunFieldData as FieldData
 from moscow_robots.game_dvigun import DvigunTextures
+import math
 
 
 class Textures(DvigunTextures):
     def __init__(self, robot_kind, csize):
         DvigunTextures.__init__(self, robot_kind, csize)
-        t = get_image("tyagun").convert_alpha()
-        self.robot = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
-        t = get_image("tyagun_dead").convert_alpha()
-        self.robot_dead = pygame.transform.scale(t, (csize[0] * 4 // 5, csize[1] * 4 // 5))
+        
+        self.robot = []
+        for i in range(4):
+            t = get_image("tyagun" + str(i)).convert_alpha()
+            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            self.robot.append(t)
+
+        self.robot_turn = []
+        for i in range(16):
+            t = get_image("tyagun_turn" + str(i)).convert_alpha()
+            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            self.robot_turn.append(t)
+
+        self.robot_dead = []
+        for i in range(4):
+            t = get_image("tyagun_dead" + str(i)).convert_alpha()
+            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            self.robot_dead.append(t)
 
 
 class GameTyagun(GameRobot):
@@ -27,11 +42,51 @@ class GameTyagun(GameRobot):
         self.field.load(self.json_data["field"])
 
         self.textures = Textures(self.robot_kind, self.csize)
+        self._resize_screen_for_iso()
 
-    def redraw_all(self):
-        self.redraw_field()
-        self.redraw_blocks()
-        self.redraw_robot()
+    def _resize_screen_for_iso(self):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        sx = self.field.sx
+        sy = self.field.sy
+        min_bx, max_bx = float('inf'), float('-inf')
+        min_by, max_by = float('inf'), float('-inf')
+        for y in range(-1, sy + 1):
+            for x in range(-1, sx + 1):
+                bx = (x - y) * (cx // 2)
+                by = (x + y) * (cy // 4)
+                min_bx = min(min_bx, bx)
+                max_bx = max(max_bx, bx)
+                min_by = min(min_by, by)
+                max_by = max(max_by, by)
+        screen_w = int(max_bx - min_bx)
+        screen_h = int(max_by - min_by + cy // 2)
+        
+        info = pygame.display.Info()
+        min_w = info.current_w * 4 // 5
+        min_h = info.current_h * 4 // 5
+        screen_w = max(screen_w, min_w)
+        screen_h = max(screen_h, min_h)
+        
+        self.screen = pygame.display.set_mode((screen_w, screen_h))
+        self._iso_offset_x = screen_w // 2 - (min_bx + max_bx) / 2
+        self._iso_offset_y = screen_h // 2 - (min_by + max_by) / 2
+
+    def to_iso(self, x, y):
+        cx = self.csize[0]
+        cy = self.csize[1]
+
+        bx = (x - y) * (cx // 2) + self._iso_offset_x
+        by = (x + y) * (cy // 4) + self._iso_offset_y
+
+        return bx, by
+        
+    def _z_key(self, x, y, dir=None):
+        
+        if (dir == "vert_move"):
+            return (x + y, x, y)
+        else:
+            return (x + y, y, x)
 
     def task_complete(self):
         if not self.robot_alive:
@@ -49,142 +104,307 @@ class GameTyagun(GameRobot):
                     return False
         return True
 
-    def redraw_field(self):
-        self.screen.fill((255, 0, 255)) 
+    def redraw_all(self):
+        self.screen.fill((255, 0, 255))
+
+        self._draw_field_base()
+
+        objects = self._gather_all_objects()
+
+        self._draw_objects_sorted(objects)
+
+    def _draw_field_base(self):
         sx = self.field.sx
         sy = self.field.sy
-        cx = self.csize[0]
-        cy = self.csize[1]
 
         for y in range(sy):
             for x in range(sx):
                 cell = self.field.cells[y][x]
+
                 t = self.textures.fields[cell.bdest]
-                self.screen.blit(t, (x * cx, y * cy))
 
-        t = self.textures.vwall
-        for y in range(sy): # vertical fences
-            for x in range(sx - 1):
-                if self.field.vfences[y][x]:
-                    bx = cx * (x + 1) - cx // 20
-                    by = cy * y + cy // 10
-                    self.screen.blit(t, (bx, by))
+                bx, by = self.to_iso(x, y)
 
-        t = self.textures.hwall
-        for y in range(sy - 1): # horizontal fences
-            for x in range(sx):
-                if self.field.hfences[y][x]:
-                    bx = cx * x + cx // 10
-                    by = cy * (y + 1) - cy // 20
-                    self.screen.blit(t, (bx, by))
+                self.screen.blit(
+                    t,
+                    (
+                        bx - t.get_width() // 2,
+                        by - t.get_height() // 2
+                    )
+                )
+
         fpos = self.robot.fpos
         if fpos is not None:
             t = self.textures.robot_dest
-            bx = fpos[0] * cx
-            by = fpos[1] * cy
-            self.screen.blit(t, (bx, by))
+            bx, by = self.to_iso(fpos[0], fpos[1])
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
 
-    def redraw_blocks(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
-        for y in range(self.field.sy):
-            for x in range(self.field.sx):
+    def _gather_all_objects(self):
+        objects = []
+
+        sx = self.field.sx
+        sy = self.field.sy
+
+        objects.append(('robot', self.robot.x, self.robot.y, None))
+
+        for y in range(sy):
+            for x in range(sx):
                 block = self.field.cells[y][x].block
-                if block:
-                    t = self.textures.blocks[block]
-                    ax = (cx - t.get_width()) // 2
-                    ay = (cy - t.get_height()) // 2
-                    bx = cx * x + ax
-                    by = cy * y + ay
-                    self.screen.blit(t, (bx, by))
-        pass
-                    
-    def redraw_robot(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
-        x = self.robot.x
-        y = self.robot.y
-        d = (4 - self.robot.dir) % 4
-        t = self.textures.robot
-        if not self.robot_alive:
-            t = self.textures.robot_dead
-        t = pygame.transform.rotate(t, d * 90)
-        
-        ax = (cx - t.get_width()) // 2
-        ay = (cy - t.get_height()) // 2
-        bx = cx * x + ax
-        by = cy * y + ay
-        self.screen.blit(t, (bx, by))
 
-    def move_robot(self, k):  # with k blocks ahead
-        cx = self.csize[0]
-        cy = self.csize[1]
+                if block:
+                    objects.append((
+                        'block',
+                        x,
+                        y,
+                        {
+                            'block': block
+                        }
+                    ))
+
+        for y in range(sy):
+            for x in range(sx - 1):
+                if self.field.vfences[y][x]:
+                    objects.append(('vwall', x + 0.5, y, None))
+
+        for y in range(sy - 1):
+            for x in range(sx):
+                if self.field.hfences[y][x]:
+                    objects.append(('hwall', x, y + 0.5, None))
+
+        return objects
+
+    def _draw_object(self, obj_type, x, y, data=None, robot_tex=None):
+        if obj_type == 'robot':
+            t = robot_tex
+
+            if t is None:
+                d = self.robot.dir % 4
+
+                if not self.robot_alive:
+                    t = self.textures.robot_dead[d]
+                else:
+                    t = self.textures.robot[d]
+
+            bx, by = self.to_iso(x, y)
+
+            by -= self.csize[1] // 6
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'block':
+            block_id = data['block']
+
+            t = self.textures.blocks[block_id]
+
+            bx, by = self.to_iso(x, y)
+
+            by -= self.csize[1] // 6
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'vwall':
+            t = self.textures.vwall
+
+            bx, by = self.to_iso(x, y)
+
+            bx += 2.5
+            by -= 5
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'hwall':
+            t = self.textures.hwall
+
+            bx, by = self.to_iso(x, y)
+
+            bx += 2.5
+            by -= 5
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+    def _draw_objects_sorted(self, objects, dir=None):
+        objects.sort(
+            key=lambda obj: self._z_key(obj[1], obj[2], dir)
+        )
+
+        for obj_type, x, y, data in objects:
+            self._draw_object(obj_type, x, y, data)
+
+    def move_robot(self, k):
         x = self.robot.x
         y = self.robot.y
+
         d = self.robot.dir % 4
+
         dx, dy = self.direction_vectors[d]
 
         blocks = [0 for i in range(k)]
+
         for i in range(k):
-            xi, yi = x - dx * (i + 1), y - dy * (i + 1)
+            xi = x - dx * (i + 1)
+            yi = y - dy * (i + 1)
+
             blocks[i] = self.field.cells[yi][xi].block
+
             assert blocks[i]
+
             self.field.cells[yi][xi].block = 0
 
-        ts = []
-        ts.append(pygame.transform.rotate(self.textures.robot, ((4 - d) % 4) * 90))
-        for i in range(k):
-            ts.append(self.textures.blocks[blocks[i]])
+        self.screen.fill((255, 0, 255))
 
-        self.redraw_field()
-        self.redraw_blocks()
+        self._draw_field_base()
+
         scopy = self.screen.copy()
 
         m = 8
+
+        sx = self.field.sx
+        sy = self.field.sy
+
         for i in range(m + 1):
             self.screen.blit(scopy, (0, 0))
-            dxi, dyi = dx * (cx * i // m), dy * (cy * i // m)
-            for j in range(k + 1):
-                ax = (cx - ts[j].get_width()) // 2
-                ay = (cy - ts[j].get_height()) // 2
-                bx = cx * (x - j * dx) + ax + dxi
-                by = cy * (y - j * dy) + ay + dyi
-                self.screen.blit(ts[j], (bx, by))
-            
+
+            fx = x + dx * i / m
+            fy = y + dy * i / m
+
+            anim_objects = []
+
+            anim_objects.append(('robot', fx, fy, None))
+
+            for j in range(1, k + 1):
+                bx_pos = fx - dx * j
+                by_pos = fy - dy * j
+
+                anim_objects.append((
+                    'block',
+                    bx_pos,
+                    by_pos,
+                    {
+                        'block': blocks[j - 1]
+                    }
+                ))
+
+            for by in range(sy):
+                for bx in range(sx):
+                    block = self.field.cells[by][bx].block
+
+                    if block:
+                        anim_objects.append((
+                            'block',
+                            bx,
+                            by,
+                            {
+                                'block': block
+                            }
+                        ))
+
+            for wy in range(sy):
+                for wx in range(sx - 1):
+                    if self.field.vfences[wy][wx]:
+                        anim_objects.append(('vwall', wx + 0.5, wy, None))
+
+            for wy in range(sy - 1):
+                for wx in range(sx):
+                    if self.field.hfences[wy][wx]:
+                        anim_objects.append(('hwall', wx, wy + 0.5, None))
+
+            dir = None
+            if dx == 0: 
+                dir = "vert_move"
+
+            self._draw_objects_sorted(anim_objects, dir)
+
             pygame.display.update()
+
             pygame.time.wait(self.game_speed // (m + 1))
 
         for i in range(k):
-            xi, yi = x - dx * i, y - dy * i
+            xi = x - dx * i
+            yi = y - dy * i
+
             self.field.cells[yi][xi].block = blocks[i]
+
         self.robot.x += dx
         self.robot.y += dy
 
     def rotate_robot(self, dd):
-        cx = self.csize[0]
-        cy = self.csize[1]
         x = self.robot.x
         y = self.robot.y
+
         d = self.robot.dir % 4
 
-        bx = cx * x
-        by = cy * y
+        self.screen.fill((255, 0, 255))
 
-        t = self.textures.robot
-        t = pygame.transform.rotate(t, ((4 - d) % 4) * 90)
+        self._draw_field_base()
 
-        self.redraw_field()
-        self.redraw_blocks()
         scopy = self.screen.copy()
 
-        m = 8
+        m = 16
+
         for i in range(m + 1):
-            ti = pygame.transform.rotate(t, -90 * dd * i // m)
-            tsize = ti.get_size()
             self.screen.blit(scopy, (0, 0))
-            dbx = (cx - tsize[0]) // 2
-            dby = (cy - tsize[1]) // 2
-            self.screen.blit(ti, (bx + dbx, by + dby))
+
+            if dd == 1:
+                mid_dir = (d * 4 + 4 * i / m) % 16
+            else:
+                mid_dir = (d * 4 - 4 * i / m) % 16
+
+            idx = int(round(mid_dir)) % 16
+
+            anim_objects = self._gather_all_objects()
+
+            anim_objects = [
+                obj for obj in anim_objects
+                if obj[0] != 'robot'
+            ]
+
+            anim_objects.append(('robot', x, y, None))
+
+            anim_objects.sort(key=lambda obj: self._z_key(obj[1], obj[2]))
+
+            for obj_type, ox, oy, data in anim_objects:
+                if obj_type == 'robot':
+                    ti = self.textures.robot_turn[idx]
+
+                    self._draw_object(
+                        'robot',
+                        ox,
+                        oy,
+                        robot_tex=ti
+                    )
+                else:
+                    self._draw_object(obj_type, ox, oy, data)
+
             pygame.display.update()
             pygame.time.wait(self.game_speed // (m + 1))
 
