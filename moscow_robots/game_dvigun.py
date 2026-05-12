@@ -3,7 +3,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 from moscow_robots.data import get_image
 from moscow_robots.game_robot import GameRobot
-
+import math
 
 class DvigunCellData:
     def __init__(self):
@@ -155,13 +155,13 @@ class DvigunTextures:
         t = pygame.transform.scale(t, (csize[0] * 0.6, csize[1] * 0.6))
         self.blocks.append(t)
 
-        import math
         edge_len = math.sqrt((csize[0] / 2) ** 2 + (csize[1] / 4) ** 2) * math.sqrt(2)
 
         t = get_image("wall_hor").convert_alpha()
         t = pygame.transform.rotate(t, -45)
         t = pygame.transform.scale(t, (t.get_width(), t.get_height() // 2))
         scale = edge_len / t.get_width()
+        scale *= 0.9
         self.hwall = pygame.transform.scale(
             t,
             (int(t.get_width() * scale), int(t.get_height() * scale))
@@ -171,6 +171,7 @@ class DvigunTextures:
         t = pygame.transform.rotate(t, -45)
         t = pygame.transform.scale(t, (t.get_width(), t.get_height() // 2))
         scale = edge_len / t.get_width()
+        scale *= 0.9
         self.vwall = pygame.transform.scale(
             t,
             (int(t.get_width() * scale), int(t.get_height() * scale))
@@ -224,14 +225,13 @@ class GameDvigun(GameRobot):
         by = (x + y) * (cy // 4) + self._iso_offset_y
 
         return bx, by
-
-    def _z_key(self, obj_type, x, y, moving_shift=False):
-        z = x + y
-
-        if moving_shift and (obj_type == "robot" or obj_type == "block"):
-            z += 0.15
-
-        return (z, y, x)
+        
+    def _z_key(self, x, y, dir=None):
+        
+        if (dir == "vert_move"):
+            return (x + y, x, y)
+        else:
+            return (x + y, y, x)
 
     def task_complete(self):
         if not self.robot_alive:
@@ -342,11 +342,13 @@ class GameDvigun(GameRobot):
 
             bx, by = self.to_iso(x, y)
 
+            by -= self.csize[1] // 6
+
             self.screen.blit(
                 t,
                 (
                     bx - t.get_width() // 2,
-                    by - t.get_height() // 2 - self.csize[1] // 6
+                    by - t.get_height() // 2
                 )
             )
 
@@ -357,11 +359,13 @@ class GameDvigun(GameRobot):
 
             bx, by = self.to_iso(x, y)
 
+            by -= self.csize[1] // 6
+
             self.screen.blit(
                 t,
                 (
                     bx - t.get_width() // 2,
-                    by - t.get_height() // 2 - self.csize[1] // 8
+                    by - t.get_height() // 2
                 )
             )
 
@@ -370,7 +374,7 @@ class GameDvigun(GameRobot):
 
             bx, by = self.to_iso(x, y)
 
-            bx += 5
+            bx += 2.5
             by -= 5
 
             self.screen.blit(
@@ -386,6 +390,7 @@ class GameDvigun(GameRobot):
 
             bx, by = self.to_iso(x, y)
 
+            bx += 2.5
             by -= 5
 
             self.screen.blit(
@@ -396,15 +401,12 @@ class GameDvigun(GameRobot):
                 )
             )
 
-    def _draw_objects_sorted(self, objects, moving_shift=False, skip_robot=False):
+    def _draw_objects_sorted(self, objects, dir=None):
         objects.sort(
-            key=lambda obj: self._z_key(obj[0], obj[1], obj[2], moving_shift)
+            key=lambda obj: self._z_key(obj[1], obj[2], dir)
         )
 
         for obj_type, x, y, data in objects:
-            if skip_robot and obj_type == 'robot':
-                continue
-
             self._draw_object(obj_type, x, y, data)
 
     def move_robot(self, k):
@@ -485,11 +487,11 @@ class GameDvigun(GameRobot):
                     if self.field.hfences[wy][wx]:
                         anim_objects.append(('hwall', wx, wy + 0.5, None))
 
-            moving_shift = False
-            if dy > 0 or dx > 0:
-                moving_shift = True
+            dir = None
+            if dx == 0: 
+                dir = "vert_move"
 
-            self._draw_objects_sorted(anim_objects, moving_shift)
+            self._draw_objects_sorted(anim_objects, dir)
 
             pygame.display.update()
 
@@ -537,7 +539,7 @@ class GameDvigun(GameRobot):
 
             anim_objects.append(('robot', x, y, None))
 
-            anim_objects.sort(key=lambda obj: self._z_key(obj[0], obj[1], obj[2]))
+            anim_objects.sort(key=lambda obj: self._z_key(obj[1], obj[2]))
 
             for obj_type, ox, oy, data in anim_objects:
                 if obj_type == 'robot':
