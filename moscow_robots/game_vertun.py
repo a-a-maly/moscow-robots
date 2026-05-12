@@ -122,7 +122,7 @@ class Textures:
 
         edge_len = math.sqrt((csize[0] / 2) ** 2 + (csize[1] / 4) ** 2) * math.sqrt(2)
 
-        t = get_image("wall_hor").convert_alpha()
+        t = get_image("vertun_wall_hor").convert_alpha()
         t = pygame.transform.rotate(t, -45)
         t = pygame.transform.scale(t, (t.get_width(), t.get_height() // 2))
         scale = edge_len / t.get_width()
@@ -132,7 +132,7 @@ class Textures:
             (int(t.get_width() * scale), int(t.get_height() * scale))
         )
 
-        t = get_image("wall_vert").convert_alpha()
+        t = get_image("vertun_wall_vert").convert_alpha()
         t = pygame.transform.rotate(t, -45)
         t = pygame.transform.scale(t, (t.get_width(), t.get_height() // 2))
         scale = edge_len / t.get_width()

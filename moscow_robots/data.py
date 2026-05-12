@@ -121,8 +121,10 @@ texture_names = [
 	"vertun_dead3",
     "iskun",
     "iskun_dead",
-    "wall_hor",
-    "wall_vert"
+    "dvigun_wall_hor",
+    "dvigun_wall_vert",
+	"vertun_wall_hor",
+    "vertun_wall_vert"
 ]
 
 texture_imgs = None
