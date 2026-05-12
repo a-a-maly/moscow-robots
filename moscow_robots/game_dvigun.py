@@ -111,6 +111,12 @@ class DvigunTextures:
             t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
             self.robot.append(t)
 
+        self.robot_turn = []
+        for i in range(16):
+            t = get_image("dvigun_turn" + str(i)).convert_alpha()
+            t = pygame.transform.scale(t, (csize[0] * 0.8, csize[1] * 0.7))
+            self.robot_turn.append(t)
+
         self.robot_dead = []
         for i in range(4):
             t = get_image("dvigun_dead" + str(i)).convert_alpha()
@@ -510,14 +516,17 @@ class GameDvigun(GameRobot):
 
         scopy = self.screen.copy()
 
-        m = 8
+        m = 16
 
         for i in range(m + 1):
             self.screen.blit(scopy, (0, 0))
 
-            mid_dir = (d + dd * i / m) % 4
+            if dd == 1:
+                mid_dir = (d * 4 + 4 * i / m) % 16
+            else:
+                mid_dir = (d * 4 - 4 * i / m) % 16
 
-            idx = int(round(mid_dir)) % 4
+            idx = int(round(mid_dir)) % 16
 
             anim_objects = self._gather_all_objects()
 
@@ -526,13 +535,13 @@ class GameDvigun(GameRobot):
                 if obj[0] != 'robot'
             ]
 
-            anim_objects.append(('robot', x, y, idx))
+            anim_objects.append(('robot', x, y, None))
 
             anim_objects.sort(key=lambda obj: self._z_key(obj[0], obj[1], obj[2]))
 
             for obj_type, ox, oy, data in anim_objects:
                 if obj_type == 'robot':
-                    ti = self.textures.robot[idx]
+                    ti = self.textures.robot_turn[idx]
 
                     self._draw_object(
                         'robot',
