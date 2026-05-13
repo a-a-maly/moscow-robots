@@ -20,8 +20,8 @@ class Textures(DvigunTextures):
 class GameTyagun(GameRobot):
     robot_class_kind = 4
 
-    def __init__(self, json_name):
-        GameRobot.__init__(self, json_name)
+    def __init__(self, json_name, csize = None):
+        GameRobot.__init__(self, json_name, csize)
 
         self.field = FieldData()
         self.field.load(self.json_data["field"])
