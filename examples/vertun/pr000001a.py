@@ -1,4 +1,4 @@
-import moscow_robots as mr
+import moscow_robots as mrs
 
 pitcher = 0
 memory = 0
@@ -32,5 +32,5 @@ def proc_C():
 def proc_D():
     pass
 
-with mr.GameVertun("a.json") as mr:
+with mrs.GameRobot.make_robot("a.json", 64) as mr:
     proc_main()
