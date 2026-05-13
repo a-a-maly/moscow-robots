@@ -43,6 +43,7 @@ class GameTyagun(GameRobot):
 
         self._resize_screen_for_iso()
         self.textures = Textures(self.robot_kind, self.csize)
+        self._create_depth_surface()
 
     def _resize_screen_for_iso(self):
         cx = self.csize[0]
@@ -84,6 +85,55 @@ class GameTyagun(GameRobot):
         self._iso_offset_x = screen_w // 2 - (min_bx + max_bx) / 2
         self._iso_offset_y = screen_h // 2 - (min_by + max_by) / 2
 
+    def _create_depth_surface(self):
+
+        cx = self.csize[0]
+        cy = self.csize[1]
+
+        sx = self.field.sx
+        sy = self.field.sy
+
+        hw = cx // 2
+        hh = cy // 4
+
+        self._depth_surface = pygame.Surface(
+            self.screen.get_size(),
+            pygame.SRCALPHA
+        )
+
+        depth_offset = cy // 4
+
+        for x in range(sx):
+            bx, by = self.to_iso(x, sy - 1)
+            t = self.textures.depth_hor
+
+            px = bx - hw
+            py = by + hh
+
+            self._depth_surface.blit(
+                t,
+                (
+                    int(px + 1),
+                    int(py - depth_offset - 1)
+                )
+            )
+
+
+        for y in range(sy):
+            bx, by = self.to_iso(sx - 1, y)
+            t = self.textures.depth_vert
+
+            px = bx + hw
+            py = by + hh
+
+            self._depth_surface.blit(
+                t,
+                (
+                    int(px - t.get_width()),
+                    int(py - depth_offset - 1)
+                )
+            )
+
     def to_iso(self, x, y):
         cx = self.csize[0]
         cy = self.csize[1]
@@ -118,7 +168,7 @@ class GameTyagun(GameRobot):
 
     def redraw_all(self):
         self.screen.fill((255, 0, 255))
-
+        self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
         objects = self._gather_all_objects()
@@ -293,7 +343,7 @@ class GameTyagun(GameRobot):
             self.field.cells[yi][xi].block = 0
 
         self.screen.fill((255, 0, 255))
-
+        self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
         scopy = self.screen.copy()
@@ -376,7 +426,7 @@ class GameTyagun(GameRobot):
         d = self.robot.dir % 4
 
         self.screen.fill((255, 0, 255))
-
+        self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
         scopy = self.screen.copy()

@@ -146,7 +146,11 @@ texture_names = [
     "dvigun_wall_hor",
     "dvigun_wall_vert",
 	"vertun_wall_hor",
-    "vertun_wall_vert"
+    "vertun_wall_vert",
+	"dvigun_depth_hor",
+	"dvigun_depth_vert",
+    "vertun_depth_hor",
+	"vertun_depth_vert"
 ]
 
 texture_imgs = None
