@@ -150,7 +150,13 @@ texture_names = [
 	"dvigun_depth_hor",
 	"dvigun_depth_vert",
     "vertun_depth_hor",
-	"vertun_depth_vert"
+	"vertun_depth_vert",
+	"dvigun_center",
+	"vertun_center",
+	"star0",
+	"star1",
+	"star2",
+	"star3"
 ]
 
 texture_imgs = None

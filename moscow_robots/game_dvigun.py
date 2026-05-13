@@ -4,6 +4,7 @@ import pygame
 from moscow_robots.data import get_image
 from moscow_robots.game_robot import GameRobot
 import math
+import random
 
 class DvigunCellData:
     def __init__(self):
@@ -202,6 +203,17 @@ class DvigunTextures:
             )
         )
 
+        self.background_center = get_image(
+            "dvigun_center"
+        ).convert_alpha()
+
+        self.stars = []
+
+        for i in range(4):
+            self.stars.append(
+                get_image(f"star{i}").convert_alpha()
+            )
+
 class GameDvigun(GameRobot):
     robot_class_kind = 3
 
@@ -213,7 +225,69 @@ class GameDvigun(GameRobot):
         
         self._resize_screen_for_iso()
         self.textures = DvigunTextures(self.robot_kind, self.csize)
+        self._create_background_surface()
         self._create_depth_surface()
+
+    def _create_background_surface(self):
+        w, h = self.screen.get_size()
+
+        self._background_surface = pygame.Surface(
+            (w, h),
+            pygame.SRCALPHA
+        ).convert_alpha()
+
+        bg_color = (102, 0, 255)
+        self._background_surface.fill(bg_color)
+
+        center = self.textures.background_center
+
+        scale = 2.5
+
+        sw = int(center.get_width() * scale)
+        sh = int(center.get_height() * scale)
+
+        center_scaled = pygame.transform.smoothscale(
+            center,
+            (sw, sh)
+        )
+
+        self._background_surface.blit(
+            center_scaled,
+            (
+                w // 2 - sw // 2,
+                h // 2 - sh // 2
+            )
+        )
+
+        stars_count = 150
+
+        for i in range(stars_count):
+            star = self.textures.stars[i % 4]
+
+            scale = random.uniform(0.08, 0.22)
+
+            sw = max(1, int(star.get_width() * scale))
+            sh = max(1, int(star.get_height() * scale))
+
+            star_scaled = pygame.transform.smoothscale(
+                star,
+                (sw, sh)
+            ).convert_alpha()
+
+            star_scaled.set_alpha(
+                random.randint(90, 220)
+            )
+
+            x = random.randint(0, w)
+            y = random.randint(0, h)
+
+            self._background_surface.blit(
+                star_scaled,
+                (
+                    x,
+                    y
+                )
+            )
 
     def _resize_screen_for_iso(self):
         cx = self.csize[0]
@@ -341,7 +415,7 @@ class GameDvigun(GameRobot):
         return True
 
     def redraw_all(self):
-        self.screen.fill((255, 0, 255))
+        self.screen.blit(self._background_surface, (0, 0))
         self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
@@ -516,7 +590,7 @@ class GameDvigun(GameRobot):
 
             self.field.cells[yi][xi].block = 0
 
-        self.screen.fill((255, 0, 255))
+        self.screen.blit(self._background_surface, (0, 0))
         self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
@@ -599,7 +673,7 @@ class GameDvigun(GameRobot):
 
         d = self.robot.dir % 4
 
-        self.screen.fill((255, 0, 255))
+        self.screen.blit(self._background_surface, (0, 0))
         self.screen.blit(self._depth_surface, (0, 0))
         self._draw_field_base()
 
