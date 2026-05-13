@@ -196,6 +196,11 @@ class GameTrain(GameRobot):
                     return False
         return True
 
+    def redraw_cargo_dest(self, x, y, px, py):
+        cell = self.field.cells[y][x]
+        t = self.textures.fields[cell.bdest]
+        self.screen.blit(t, (px, py))
+
     def redraw_field(self):
         if self.fcopy is not None:
             self.screen.blit(self.fcopy, (0, 0))
@@ -209,9 +214,7 @@ class GameTrain(GameRobot):
 
         for y in range(sy):
             for x in range(sx):
-                cell = self.field.cells[y][x]
-                t = self.textures.fields[cell.bdest]
-                self.screen.blit(t, (x * cx, y * cy))
+                self.redraw_cargo_dest(x, y, x * cx, y * cy)
 
         t = self.textures.vwall
         for y in range(sy): # vertical fences
@@ -238,26 +241,23 @@ class GameTrain(GameRobot):
 
         self.fcopy = self.screen.copy()
 
+    def redraw_block(self, x, y, px, py):
+        block = self.field.cells[y][x].block
+        if block:
+            cx, cy = self.csize
+            t = self.textures.blocks[block]
+            ax = (cx - t.get_width()) // 2
+            ay = (cy - t.get_height()) // 2
+            self.screen.blit(t, (ax + px, ay + py))
+
     def redraw_blocks(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
+        cx, cy = self.csize
         for y in range(self.field.sy):
             for x in range(self.field.sx):
-                block = self.field.cells[y][x].block
-                if block:
-                    t = self.textures.blocks[block]
-                    ax = (cx - t.get_width()) // 2
-                    ay = (cy - t.get_height()) // 2
-                    bx = cx * x + ax
-                    by = cy * y + ay
-                    self.screen.blit(t, (bx, by))
-        pass
+                self.redraw_block(x, y, cx * x, cy * y)
 
-    def redraw_robot(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
-        x = self.robot.x
-        y = self.robot.y
+    def redraw_robot_at(self, px, py):
+        cx, cy = self.csize
         d = self.robot.dir % 4
         t = self.textures.robot
         if not self.robot_alive:
@@ -266,21 +266,29 @@ class GameTrain(GameRobot):
         
         ax = (cx - t.get_width()) // 2
         ay = (cy - t.get_height()) // 2
-        bx = cx * x + ax
-        by = cy * y + ay
-        self.screen.blit(t, (bx, by))
+        self.screen.blit(t, (px + ax, py + ay))
+
+    def redraw_robot(self):
+        cx, cy = self.csize
+        x = self.robot.x
+        y = self.robot.y
+        self.redraw_robot_at(cx * x, cy * y)
+
+    def redraw_gear(self, d, px, py):
+        cx, cy = self.csize
+        dx, dy = self.direction_vectors[d]
+        t = pygame.transform.rotate(self.textures.gear, -90 * d)
+        ax = (cx * (1 + dx) - t.get_width()) // 2
+        ay = (cx * (1 + dy) - t.get_height()) // 2
+        self.screen.blit(t, (px + ax, py + ay))
 
     def redraw_gears(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
+        cx, cy = self.csize
         for g in self.field.gears:
             x, y = g.edges[0]
             for d in g.dirs:
                 dx, dy = self.direction_vectors[d]
-                t = pygame.transform.rotate(self.textures.gear, -90 * d)
-                ax = (cx * (1 + dx) - t.get_width()) // 2
-                ay = (cx * (1 + dy) - t.get_height()) // 2
-                self.screen.blit(t, (cx * x + ax, cy * y + ay))
+                self.redraw_gear(d, cx * x, cy * y)
                 x += dx
                 y += dy
 
