@@ -171,6 +171,7 @@ class GameTrain(GameRobot):
         self.field.load(self.json_data["field"], self.robot)
 
         self.textures = Textures(self.robot_kind, self.csize)
+        self.fcopy = None
 
     def redraw_all(self):
         self.redraw_field()
@@ -196,7 +197,11 @@ class GameTrain(GameRobot):
         return True
 
     def redraw_field(self):
-        self.screen.fill((255, 0, 255)) 
+        if self.fcopy is not None:
+            self.screen.blit(self.fcopy, (0, 0))
+            return
+
+        self.screen.fill((255, 0, 255))
         sx = self.field.sx
         sy = self.field.sy
         cx = self.csize[0]
@@ -223,12 +228,15 @@ class GameTrain(GameRobot):
                     bx = cx * x + cx // 10
                     by = cy * (y + 1) - cy // 20
                     self.screen.blit(t, (bx, by))
+
         fpos = self.robot.fpos
         if fpos is not None:
             t = self.textures.robot_dest
             bx = fpos[0] * cx
             by = fpos[1] * cy
             self.screen.blit(t, (bx, by))
+
+        self.fcopy = self.screen.copy()
 
     def redraw_blocks(self):
         cx = self.csize[0]
