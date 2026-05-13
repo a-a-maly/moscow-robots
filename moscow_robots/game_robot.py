@@ -4,7 +4,8 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import moscow_robots
-
+import random
+import math
 
 class RobotData:
     def __init__(self):
@@ -91,13 +92,11 @@ class GameRobot:
         self.game_mode = 0
         self.robot_alive = True
 
-
     def __enter__(self):
         self.robot_alive = True
         self.game_mode = 2 # step by step
         self.finish_step(True, False)
         return self
-
 
     def __exit__(self, t, v, tb):
         pygame.image.save(self.screen, self.base_name + ".final.png")
@@ -289,3 +288,357 @@ class GameRobot:
         for json_name in l:
             r = cls.make_robot(json_name, csize)
 
+
+class IsoGameRobot(GameRobot):
+
+    def _create_background_surface(self, bg_color, textures):
+        w, h = self.screen.get_size()
+
+        self._background_surface = pygame.Surface(
+            (w, h),
+            pygame.SRCALPHA
+        ).convert_alpha()
+
+        self._background_surface.fill(bg_color)
+        center = textures.background_center
+
+        scale = 2.5
+
+        sw = int(center.get_width() * scale)
+        sh = int(center.get_height() * scale)
+
+        center_scaled = pygame.transform.smoothscale(
+            center,
+            (sw, sh)
+        )
+
+        self._background_surface.blit(
+            center_scaled,
+            (
+                w // 2 - sw // 2,
+                h // 2 - sh // 2
+            )
+        )
+
+        stars_count = 150
+
+        for i in range(stars_count):
+            star = textures.stars[i % 4]
+
+            scale = random.uniform(0.08, 0.22)
+
+            sw = max(1, int(star.get_width() * scale))
+            sh = max(1, int(star.get_height() * scale))
+
+            star_scaled = pygame.transform.smoothscale(
+                star,
+                (sw, sh)
+            ).convert_alpha()
+
+            star_scaled.set_alpha(
+                random.randint(90, 220)
+            )
+
+            x = random.randint(0, w)
+            y = random.randint(0, h)
+
+            self._background_surface.blit(
+                star_scaled,
+                (x, y)
+            )
+
+    def _resize_screen_for_iso(self):
+        cx = self.csize[0]
+        cy = self.csize[1]
+        sx = self.field.sx
+        sy = self.field.sy
+        
+        min_size = 1600  
+
+        cx_needed = int(min_size * 2 / (sx + sy))
+        cy_needed = int(min_size * 4 / (sx + sy))
+        target_cell = min(cx_needed, cy_needed)
+
+        target_cell = max(64, min(128, target_cell))
+
+        if target_cell % 2:
+            target_cell += 1
+        
+        self.csize = (target_cell, target_cell)
+        cx = cy = target_cell
+        
+        min_bx, max_bx = float('inf'), float('-inf')
+        min_by, max_by = float('inf'), float('-inf')
+        
+        for y in range(sy):
+            for x in range(sx):
+                bx = (x - y) * (cx // 2)
+                by = (x + y) * (cy // 4)
+                min_bx = min(min_bx, bx)
+                max_bx = max(max_bx, bx)
+                min_by = min(min_by, by)
+                max_by = max(max_by, by)
+        
+        screen_w = int(max_bx - min_bx + cx * 2)
+        screen_h = int(max_by - min_by + cy * 2 / math.sqrt(2))
+        
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
+        self.screen = pygame.display.set_mode((screen_w, screen_h))
+        self._iso_offset_x = screen_w // 2 - (min_bx + max_bx) / 2
+        self._iso_offset_y = screen_h // 2 - (min_by + max_by) / 2
+
+    def _create_depth_surface(self, textures):
+        cx = self.csize[0]
+        cy = self.csize[1]
+
+        sx = self.field.sx
+        sy = self.field.sy
+
+        hw = cx // 2
+        hh = cy // 4
+
+        self._depth_surface = pygame.Surface(
+            self.screen.get_size(),
+            pygame.SRCALPHA
+        )
+
+        depth_offset = cy // 4
+
+        for x in range(sx):
+            bx, by = self.to_iso(x, sy - 1)
+            t = textures.depth_hor
+
+            px = bx - hw
+            py = by + hh
+
+            self._depth_surface.blit(
+                t,
+                (
+                    int(px + 1),
+                    int(py - depth_offset - 1)
+                )
+            )
+
+
+        for y in range(sy):
+            bx, by = self.to_iso(sx - 1, y)
+            t = textures.depth_vert
+
+            px = bx + hw
+            py = by + hh
+
+            self._depth_surface.blit(
+                t,
+                (
+                    int(px - t.get_width()),
+                    int(py - depth_offset - 1)
+                )
+            )
+
+    def to_iso(self, x, y):
+        cx = self.csize[0]
+        cy = self.csize[1]
+
+        bx = (x - y) * (cx // 2) + self._iso_offset_x
+        by = (x + y) * (cy // 4) + self._iso_offset_y
+
+        return bx, by
+        
+    def _z_key(self, x, y, dir=None):
+        if (dir == "vert_move"):
+            return (x + y, x, y)
+        else:
+            return (x + y, y, x)
+        
+    def redraw_all(self):
+        self.screen.blit(self._background_surface, (0, 0))
+        self.screen.blit(self._depth_surface, (0, 0))
+        self._draw_field_base()
+
+        objects = self._gather_all_objects()
+
+        self._draw_objects_sorted(objects)
+
+    def _draw_objects_sorted(self, objects, dir=None):
+        objects.sort(
+            key=lambda obj: self._z_key(obj[1], obj[2], dir)
+        )
+
+        for obj_type, x, y, data in objects:
+            self._draw_object(obj_type, x, y, data)
+
+    def _draw_object(self, obj_type, x, y, data=None, robot_tex=None):
+        if obj_type == 'robot':
+            t = robot_tex
+
+            if t is None:
+                d = self.robot.dir % 4
+
+                if not self.robot_alive:
+                    t = self.textures.robot_dead[d]
+                else:
+                    t = self.textures.robot[d]
+
+            bx, by = self.to_iso(x, y)
+
+            by -= self.robot_offset_y
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'block':
+            block_id = data['block']
+
+            t = self.textures.blocks[block_id]
+
+            bx, by = self.to_iso(x, y)
+
+            by -= self.block_offset_y
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'vwall':
+            t = self.textures.vwall
+
+            bx, by = self.to_iso(x, y)
+
+            bx += 2.5
+            by -= 5
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+        elif obj_type == 'hwall':
+            t = self.textures.hwall
+
+            bx, by = self.to_iso(x, y)
+
+            bx += 2.5
+            by -= 5
+
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+    def _draw_field_base(self):
+        sx = self.field.sx
+        sy = self.field.sy
+
+        for y in range(sy):
+            for x in range(sx):
+                cell = self.field.cells[y][x]
+
+                t = self.textures.fields[cell.bdest]
+
+                bx, by = self.to_iso(x, y)
+
+                self.screen.blit(
+                    t,
+                    (
+                        bx - t.get_width() // 2,
+                        by - t.get_height() // 2
+                    )
+                )
+
+        fpos = self.robot.fpos
+        if fpos is not None:
+            t = self.textures.robot_dest
+            bx, by = self.to_iso(fpos[0], fpos[1])
+            self.screen.blit(
+                t,
+                (
+                    bx - t.get_width() // 2,
+                    by - t.get_height() // 2
+                )
+            )
+
+    def _gather_all_objects(self):
+        objects = []
+
+        sx = self.field.sx
+        sy = self.field.sy
+
+        objects.append(('robot', self.robot.x, self.robot.y, None))
+
+        for y in range(sy):
+            for x in range(sx - 1):
+                if self.field.vfences[y][x]:
+                    objects.append(('vwall', x + 0.5, y, None))
+
+        for y in range(sy - 1):
+            for x in range(sx):
+                if self.field.hfences[y][x]:
+                    objects.append(('hwall', x, y + 0.5, None))
+
+        return objects
+
+    def rotate_robot(self, dd):
+        x = self.robot.x
+        y = self.robot.y
+
+        d = self.robot.dir % 4
+
+        self.screen.blit(self._background_surface, (0, 0))
+        self.screen.blit(self._depth_surface, (0, 0))
+        self._draw_field_base()
+
+        scopy = self.screen.copy()
+
+        m = 16
+
+        for i in range(m + 1):
+            self.screen.blit(scopy, (0, 0))
+
+            if dd == 1:
+                mid_dir = (d * 4 + 4 * i / m) % 16
+            else:
+                mid_dir = (d * 4 - 4 * i / m) % 16
+
+            idx = int(round(mid_dir)) % 16
+
+            anim_objects = self._gather_all_objects()
+
+            anim_objects = [
+                obj for obj in anim_objects
+                if obj[0] != 'robot'
+            ]
+
+            anim_objects.append(('robot', x, y, None))
+
+            anim_objects.sort(key=lambda obj: self._z_key(obj[1], obj[2]))
+
+            for obj_type, ox, oy, data in anim_objects:
+                if obj_type == 'robot':
+                    ti = self.textures.robot_turn[idx]
+
+                    self._draw_object(
+                        'robot',
+                        ox,
+                        oy,
+                        robot_tex=ti
+                    )
+                else:
+                    self._draw_object(obj_type, ox, oy, data)
+
+            pygame.display.update()
+            pygame.time.wait(self.game_speed // (m + 1))
