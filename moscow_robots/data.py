@@ -147,6 +147,8 @@ texture_names = [
     "dvigun_wall_vert",
 	"vertun_wall_hor",
     "vertun_wall_vert",
+	"wall_hor",
+	"wall_vert",
 	"dvigun_depth_hor",
 	"dvigun_depth_vert",
     "vertun_depth_hor",
