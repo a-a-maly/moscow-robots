@@ -292,17 +292,52 @@ class GameTrain(GameRobot):
                 x += dx
                 y += dy
 
+    def move_train(self):
+        cx, cy = self.csize
+        rx = self.robot.x
+        ry = self.robot.y
+        rd = self.robot.dir % 4
+        g0 = self.field.gears[0]
+        g0l = len(g0.dirs)
+        assert ((rx, ry) == g0.edges[0])
+        seg_list = []
+        seg_idx = 0
+        seg_beg = (rx, ry)
+        seg_dir = rd ^ 2
+        while seg_dir is not None:
+            dx, dy = self.direction_vectors[seg_dir]
+            
+            seg_ps = [seg_beg]
+            while (seg_idx < g0l) and (g0.dirs[seg_idx] == seg_dir):
+                seg_beg = (seg_beg[0] + dx, seg_beg[1] + dy)
+                seg_ps.append(seg_beg)
+                seg_idx += 1
+            seg_list.append((seg_dir, seg_ps))
+            seg_dir = None
+            if seg_idx < g0l:
+                seg_dir = g0.dirs[seg_idx]
+                dx, dy = self.direction_vectors[seg_dir]
+                seg_beg = (seg_beg[0] + dx, seg_beg[1] + dy)
+                seg_idx += 1
+        print(seg_list)
+        nsegs = len(seg_list)
+        for i in range(nsegs):
+            sed_dir, seg_ps = seg_list[i]
+            seg_psl = len(seg_ps)
+            assert (seg_psl)
+
+
 
     def move_robot(self):
-        cx = self.csize[0]
-        cy = self.csize[1]
+        self.move_train()
+
+        cx, cy = self.csize
         rx = self.robot.x
         ry = self.robot.y
         rd = self.robot.dir % 4
         rdx, rdy = self.direction_vectors[rd]
 
         g0 = self.field.gears[0]
-        #print((rx, ry), g0.edges[0])
         assert ((rx, ry) == g0.edges[0])
         px, py = rx + rdx, ry + rdy
 
