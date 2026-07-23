@@ -241,38 +241,44 @@ class GameTrain(GameRobot):
 
         self.fcopy = self.screen.copy()
 
-    def redraw_block(self, x, y, px, py):
+    def redraw_static(self, x, y):
+        cx, cy = self.csize
+        px, py = cx * x, cy * y
+        self.screen.blit(self.fcopy, (px, py), (px, py, cx, cy))
+
+    def redraw_block(self, x, y, dpos = None):
         block = self.field.cells[y][x].block
         if block:
             cx, cy = self.csize
+            px, py = cx * x, cy * y
+            if dpos is not None:
+                px, py = px + dpos[0], py + dpos[1]
             t = self.textures.blocks[block]
             ax = (cx - t.get_width()) // 2
             ay = (cy - t.get_height()) // 2
             self.screen.blit(t, (ax + px, ay + py))
 
     def redraw_blocks(self):
-        cx, cy = self.csize
         for y in range(self.field.sy):
             for x in range(self.field.sx):
-                self.redraw_block(x, y, cx * x, cy * y)
+                self.redraw_block(x, y)
 
-    def redraw_robot_at(self, px, py):
+    def redraw_robot(self, dpos = None):
         cx, cy = self.csize
+        x, y = self.robot.x, self.robot.y
+        px, py = cx * x, cy * y
+        if dpos is not None:
+            px, py = px + dpos[0], py + dpos[1]
+
         d = self.robot.dir % 4
         t = self.textures.robot
         if not self.robot_alive:
             t = self.textures.robot_dead
         t = pygame.transform.rotate(t, -d * 90)
-        
+
         ax = (cx - t.get_width()) // 2
         ay = (cy - t.get_height()) // 2
         self.screen.blit(t, (px + ax, py + ay))
-
-    def redraw_robot(self):
-        cx, cy = self.csize
-        x = self.robot.x
-        y = self.robot.y
-        self.redraw_robot_at(cx * x, cy * y)
 
     def redraw_gear(self, d, px, py):
         cx, cy = self.csize
@@ -287,10 +293,9 @@ class GameTrain(GameRobot):
         for g in self.field.gears:
             x, y = g.edges[0]
             for d in g.dirs:
-                dx, dy = self.direction_vectors[d]
                 self.redraw_gear(d, cx * x, cy * y)
-                x += dx
-                y += dy
+                dx, dy = self.direction_vectors[d]
+                x, y = x + dx, y + dy
 
     def move_train(self):
         cx, cy = self.csize
@@ -321,12 +326,32 @@ class GameTrain(GameRobot):
                 seg_idx += 1
         print(seg_list)
         nsegs = len(seg_list)
+        m = 8
         for i in range(nsegs):
-            sed_dir, seg_ps = seg_list[i]
+            seg_dir, seg_ps = seg_list[i]
             seg_psl = len(seg_ps)
             assert (seg_psl)
 
+            prev_d = self.direction_vectors[seg_dir ^ 2]
+            prev_pos = (seg_ps[0][0] + prev_d[0], seg_ps[0][1] + prev_d[1])
 
+            next_pos = None
+            next_dir = None
+            nnext_dir = None
+            if i + 1 < nsegs:
+                next_dir = seg_list[i + 1][0]
+                next_d = self.direction_vectors[next_dir]
+                next_pos = (seg_ps[-1][0] + next_d[0], seg_ps[-1][1] + next_d[1])
+                if len(seg_list[i + 1][1]) > 1:
+                    nnext_dir = next_dir
+                elif i + 2 < nsegs:
+                    nnext_dir = seg_list[i + 2][0]
+
+            if next_pos is not None:
+                self.redraw_static(*next_pos)
+                self.redraw_block(*next_pos)
+                if nnext_dir is not None:
+                    self.redraw_gear(nnext_dir, cx * next_pos[0], cy * next_pos[1])
 
     def move_robot(self):
         self.move_train()
